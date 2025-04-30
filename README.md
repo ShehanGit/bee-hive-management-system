@@ -1,4 +1,4 @@
-# 🐝 Autonomous Bee Health and Ecosystem Management System
+# Autonomous Bee Health and Ecosystem Management System
 
 An AI-powered, autonomous platform that monitors and improves bee health while analyzing the surrounding ecosystem. This system combines IoT sensor data, machine learning models, and real-time environmental analysis to support sustainable beekeeping and biodiversity conservation.
 
