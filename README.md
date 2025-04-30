@@ -52,5 +52,39 @@ This system leverages autonomous devices and artificial intelligence to:
 
 ---
 
-## 📐 Architecture
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js / Python 3
+- Arduino IDE
+- ESP32 drivers
+- MongoDB / Firebase setup
+- Cloud API keys (e.g., OpenWeather)
+
+### Installation
+
+```bash
+git clone https://github.com/your-username/autonomous-bee-health-ecosystem-management-system.git
+cd autonomous-bee-health-ecosystem-management-system
+npm install   # or pip install -r requirements.txt
+```
+### Running the Project
+
+
+```bash
+npm run dev      # For frontend/backend server
+python main.py   # For sensor processing / ML model
+```
+
+### 📈 Usage
+
+- Deploy the ESP32 in the beehive with required sensors.
+- Start data collection and stream it to the backend.
+- Access the dashboard for visual analytics and insights.
+- Receive alerts via app or SMS when anomalies are detected.
+
+
 
