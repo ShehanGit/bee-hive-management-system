@@ -1,0 +1,92 @@
+.hive-management main {
+    padding: 20px;
+    margin-top: 80px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .hive-form, .hive-list {
+    margin-bottom: 30px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .hive-form h2,
+  .hive-list h2 {
+    margin-bottom: 15px;
+  }
+  
+  .hive-form form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 400px;
+  }
+  
+  .hive-form form div {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .hive-form label {
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  .hive-form input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .form-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .hive-form button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    background-color: #ffcc00;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .hive-form button:hover {
+    background-color: #ffaa00;
+  }
+  
+  .hive-list table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .hive-list th, .hive-list td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .hive-list th {
+    background-color: #f9f9f9;
+  }
+  
+  .hive-list button {
+    margin-right: 5px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #ffcc00;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .hive-list button:hover {
+    background-color: #ffaa00;
+  }
+  
