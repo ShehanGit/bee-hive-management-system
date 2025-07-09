@@ -1,0 +1,30 @@
+# Ignore Python virtual environment
+venv/
+env/
+
+# Ignore compiled Python files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Ignore VS Code settings (if using VS Code)
+.vscode/
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+*.swp
+
+# Ignore database files (if any)
+*.sqlite3
+*.db
+
+# Ignore dependency files
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# Ignore environment variables
+.env
+.env.local
