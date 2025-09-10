@@ -39,7 +39,7 @@ h1 {
 }
 
 .form-section button {
-  background: #e6ce1c;
+  background: #ffaa00;
   color: white;
   border: none;
   padding: 12px 20px;
@@ -51,7 +51,7 @@ h1 {
 }
 
 .form-section button:hover {
-  background: #d6c335;
+  background: #ffaa00;
 }
 
 .result-section {

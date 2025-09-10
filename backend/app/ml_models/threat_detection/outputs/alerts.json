@@ -1,5 +1,28 @@
 [
   {
+    "timestamp": "2025-09-10T17:18:30.455762",
+    "threat_type": "Wax_Moth",
+    "probability": 0.9964435696601868,
+    "used_features": {
+      "weather_temp_c": 45.0,
+      "weather_humidity_pct": 32.0,
+      "hive_sound_db": 22.0,
+      "hive_sound_peak_freq": 34.0,
+      "vibration_hz": 78.0,
+      "vibration_var": 90.0,
+      "hour": 17,
+      "dayofweek": 2,
+      "is_evening": 0,
+      "temp_humidity": 1440.0,
+      "sound_roll3": 22.0,
+      "vib_roll3": 78.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 0.28205128205128205,
+      "peak_to_vib_ratio": 0.4358974358974359
+    }
+  },
+  {
     "timestamp": "2025-09-10T16:50:21.435453",
     "threat_type": "Wax_Moth",
     "probability": 0.9965268969535828,
