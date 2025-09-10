@@ -1,0 +1,29 @@
+{
+  "classes": [
+    "Environmental",
+    "No_Threat",
+    "Predator",
+    "Wax_Moth"
+  ],
+  "features": [
+    "weather_temp_c",
+    "weather_humidity_pct",
+    "hive_sound_db",
+    "hive_sound_peak_freq",
+    "vibration_hz",
+    "vibration_var",
+    "hour",
+    "dayofweek",
+    "is_evening",
+    "temp_humidity",
+    "sound_roll3",
+    "vib_roll3",
+    "sound_var3",
+    "vib_var3",
+    "db_to_vib_ratio",
+    "peak_to_vib_ratio"
+  ],
+  "test_accuracy": 1.0,
+  "test_macro_f1": 1.0,
+  "n_rows": 4000
+}

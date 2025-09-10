@@ -1,0 +1,140 @@
+[
+  {
+    "timestamp": "2025-09-10T06:45:19.406472",
+    "threat_type": "Wax_Moth",
+    "probability": 0.8399828672409058,
+    "used_features": {
+      "weather_temp_c": 28.0,
+      "weather_humidity_pct": 85.0,
+      "hive_sound_db": 60.0,
+      "hive_sound_peak_freq": 150.0,
+      "vibration_hz": 120.0,
+      "vibration_var": 5.0,
+      "hour": 19,
+      "dayofweek": 1,
+      "is_evening": 1,
+      "temp_humidity": 2380.0,
+      "sound_roll3": 60.0,
+      "vib_roll3": 120.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 0.5,
+      "peak_to_vib_ratio": 1.25
+    }
+  },
+  {
+    "timestamp": "2025-09-10T04:09:08.378734",
+    "threat_type": "Environmental",
+    "probability": 0.6422010660171509,
+    "used_features": {
+      "weather_temp_c": 40.0,
+      "weather_humidity_pct": 40.0,
+      "hive_sound_db": 75.0,
+      "hive_sound_peak_freq": 300.0,
+      "vibration_hz": 200.0,
+      "vibration_var": 15.0,
+      "hour": 14,
+      "dayofweek": 1,
+      "is_evening": 0,
+      "temp_humidity": 1600.0,
+      "sound_roll3": 75.0,
+      "vib_roll3": 200.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 0.375,
+      "peak_to_vib_ratio": 1.5
+    }
+  },
+  {
+    "timestamp": "2025-09-10T04:08:51.949016",
+    "threat_type": "Wax_Moth",
+    "probability": 0.8399828672409058,
+    "used_features": {
+      "weather_temp_c": 28.0,
+      "weather_humidity_pct": 85.0,
+      "hive_sound_db": 60.0,
+      "hive_sound_peak_freq": 150.0,
+      "vibration_hz": 120.0,
+      "vibration_var": 5.0,
+      "hour": 19,
+      "dayofweek": 1,
+      "is_evening": 1,
+      "temp_humidity": 2380.0,
+      "sound_roll3": 60.0,
+      "vib_roll3": 120.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 0.5,
+      "peak_to_vib_ratio": 1.25
+    }
+  },
+  {
+    "timestamp": "2025-09-10T04:08:35.797735",
+    "threat_type": "Predator",
+    "probability": 0.9936005473136902,
+    "used_features": {
+      "weather_temp_c": 34.0,
+      "weather_humidity_pct": 68.0,
+      "hive_sound_db": 95.0,
+      "hive_sound_peak_freq": 400.0,
+      "vibration_hz": 500.0,
+      "vibration_var": 45.0,
+      "hour": 20,
+      "dayofweek": 1,
+      "is_evening": 1,
+      "temp_humidity": 2312.0,
+      "sound_roll3": 95.0,
+      "vib_roll3": 500.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 0.19,
+      "peak_to_vib_ratio": 0.8
+    }
+  },
+  {
+    "timestamp": "2025-09-10T04:06:33.338662",
+    "threat_type": "Environmental",
+    "probability": 0.9386012554168701,
+    "used_features": {
+      "weather_temp_c": 36.0,
+      "weather_humidity_pct": 72.0,
+      "hive_sound_db": 90.0,
+      "hive_sound_peak_freq": 250.0,
+      "vibration_hz": 310.0,
+      "vibration_var": 25.0,
+      "hour": 15,
+      "dayofweek": 1,
+      "is_evening": 0,
+      "temp_humidity": 2592.0,
+      "sound_roll3": 90.0,
+      "vib_roll3": 310.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 0.2903225806451613,
+      "peak_to_vib_ratio": 0.8064516129032258
+    }
+  },
+  {
+    "timestamp": "2025-09-10T04:05:50.549390",
+    "threat_type": "Wax_Moth",
+    "probability": 0.715280294418335,
+    "used_features": {
+      "weather_temp_c": 28.0,
+      "weather_humidity_pct": 55.0,
+      "hive_sound_db": 60.0,
+      "hive_sound_peak_freq": 150.0,
+      "vibration_hz": 180.0,
+      "vibration_var": 8.0,
+      "hour": 10,
+      "dayofweek": 2,
+      "is_evening": 0,
+      "temp_humidity": 1540.0,
+      "sound_roll3": 60.0,
+      "vib_roll3": 180.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 0.3333333333333333,
+      "peak_to_vib_ratio": 0.8333333333333334
+    }
+  }
+]
