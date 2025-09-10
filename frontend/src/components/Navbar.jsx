@@ -32,6 +32,14 @@ function Navbar() {
         <li>
           <Link to="/NewHivePlacement" onClick={() => setIsOpen(false)}>New Hive Placement</Link>
         </li>
+        <li>
+          <Link to="/threat-detection" onClick={() => setIsOpen(false)}>Threat Detection</Link>
+        </li>
+        <li>
+          <Link to="/alerts">Threat Alerts</Link>
+        </li>
+
+
       </ul>
     </nav>
   );

@@ -1,0 +1,93 @@
+.threat-detection main {
+  padding: 80px;
+  background: #f4f7fb;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #2c3e50;
+}
+
+.form-section {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  max-width: 600px;
+  margin: 0 auto 30px auto;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #34495e;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.form-section button {
+  background: #e6ce1c;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.form-section button:hover {
+  background: #d6c335;
+}
+
+.result-section {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.result-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.result-card.No_Threat {
+  border-left: 6px solid #2ecc71;
+}
+
+.result-card.Wax_Moth {
+  border-left: 6px solid #e67e22;
+}
+
+.result-card.Predator {
+  border-left: 6px solid #e74c3c;
+}
+
+.result-card.Environmental {
+  border-left: 6px solid #3498db;
+}
+
+.chart-container {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  max-width: 500px;
+  margin: 0 auto;
+}
