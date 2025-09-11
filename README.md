@@ -88,3 +88,27 @@ python main.py   # For sensor processing / ML model
 
 
 
+
+
+To run this Flask backend, follow these steps:
+
+Ensure you have Python installed on your system.
+Navigate to the project directory (where run.py is located) in your terminal.
+Create a virtual environment (if not already created) by running:
+textpython -m venv venv
+
+Activate the virtual environment:
+
+On Windows: venv\Scripts\activate
+On MacOS/Linux: source venv/bin/activate
+
+
+Install the required dependencies by running:
+textpip install -r requirements.txt
+
+Set up the database (e.g., MySQL) and configure the connection in your app module (e.g., in config.py or similar).
+Run the application by executing:
+textpython run.py
+
+
+The backend should now be running locally, accessible at http://localhost:5000 with debug mode enabled.

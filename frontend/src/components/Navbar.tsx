@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FaBell } from 'react-icons/fa'; // Optional: Bell icon for notification feel
 import './Navbar.css';
 
 function Navbar() {
@@ -33,11 +34,13 @@ function Navbar() {
           <Link to="/NewHivePlacement" onClick={() => setIsOpen(false)}>New Hive Placement</Link>
         </li>
         <li>
+
           <Link to="/threat-detection" onClick={() => setIsOpen(false)}>Threat Detection</Link>
         </li>
         <li>
           <Link to="/alerts">Threat Alerts</Link>
         </li>
+
 
 
       </ul>
