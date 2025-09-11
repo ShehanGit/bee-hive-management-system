@@ -161,6 +161,8 @@ body {
   border: 1px solid var(--grid-border);
   cursor: pointer;
   transition: background 0.3s ease;
+  min-width: 20px; /* Added to ensure cells don't get too small */
+  min-height: 20px;
 }
 
 .grid-cell:hover {

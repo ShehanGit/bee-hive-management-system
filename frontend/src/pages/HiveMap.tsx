@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import mapImage from "../assets/images/map.png"; // Ensure this image exists
@@ -10,27 +10,25 @@ function HiveMap() {
   const [selectedCell, setSelectedCell] = useState(null);
   const [predictions, setPredictions] = useState({});
   const [cellToLocation, setCellToLocation] = useState({});
-  const [maxHoney, setMaxHoney] = useState(1); // Default to avoid division by zero
-  const [rows, setRows] = useState(5); // Dynamic based on data
-  const [cols, setCols] = useState(5);
-  const [viewMode, setViewMode] = useState("grid"); // grid or map
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(null); // Error state
+  const [maxHoney, setMaxHoney] = useState(1);
+  const [rows, setRows] = useState(0); // Initialize to 0 for empty state
+  const [cols, setCols] = useState(0);
+  const [viewMode, setViewMode] = useState("grid");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const API_BASE = "http://127.0.0.1:5000/api"; // Matches backend prefix
+  const API_BASE = "http://127.0.0.1:5000/api";
 
-  // Fetch hives
   const fetchHives = async () => {
     try {
       const res = await axios.get(`${API_BASE}/hives`);
       setHives(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error("Error fetching hives:", error);
-      setError("Failed to fetch hives. Please try again.");
+      setError("Failed to fetch hives.");
     }
   };
 
-  // Fetch potential locations
   const fetchPotentialLocations = async () => {
     try {
       setLoading(true);
@@ -47,7 +45,6 @@ function HiveMap() {
     }
   };
 
-  // Process locations to create grid and predictions
   const processLocations = (locations) => {
     if (locations.length === 0) {
       setRows(0);
@@ -55,7 +52,6 @@ function HiveMap() {
       return;
     }
 
-    // Get unique sorted lats (descending for row 0 = highest lat) and lngs (ascending)
     const uniqueLats = [...new Set(locations.map((l) => l.lat))].sort((a, b) => b - a);
     const uniqueLngs = [...new Set(locations.map((l) => l.lng))].sort((a, b) => a - b);
 
@@ -74,18 +70,12 @@ function HiveMap() {
     setRows(uniqueLats.length);
     setCols(uniqueLngs.length);
 
-    // Calculate max honey_production for normalization
     const honeyValues = Object.values(newPredictions).filter(
       (v) => v !== null && v !== undefined
     );
-    if (honeyValues.length > 0) {
-      setMaxHoney(Math.max(...honeyValues));
-    } else {
-      setMaxHoney(1); // Fallback
-    }
+    setMaxHoney(honeyValues.length > 0 ? Math.max(...honeyValues) : 1);
   };
 
-  // Generate grid
   const generateGrid = async () => {
     try {
       setLoading(true);
@@ -100,7 +90,6 @@ function HiveMap() {
     }
   };
 
-  // Run predictions
   const predictAll = async () => {
     try {
       setLoading(true);
@@ -115,7 +104,6 @@ function HiveMap() {
     }
   };
 
-  // Load optimal locations (generate grid, predict, fetch)
   const loadOptimalLocations = async () => {
     try {
       setLoading(true);
@@ -130,13 +118,11 @@ function HiveMap() {
     }
   };
 
-  // Initial data fetch
   useEffect(() => {
     fetchHives();
     fetchPotentialLocations();
   }, []);
 
-  // Handle cell click
   const handleCellClick = (row, col) => {
     const cellId = `${row}-${col}`;
     if (cellToLocation[cellId]) {
@@ -144,20 +130,37 @@ function HiveMap() {
     }
   };
 
-  // Determine cell color based on honey production
   const getCellColor = (cellId) => {
     const score = predictions[cellId];
-    if (score === undefined || score === null) return "#fff"; // No prediction
+    if (score === undefined || score === null) return "#fff";
     const normalized = score / maxHoney;
     if (normalized > 0.7) return "var(--green-color)";
     if (normalized > 0.4) return "var(--blue-color)";
     return "var(--red-color)";
   };
 
-  // Toggle between grid and map view
   const toggleViewMode = () => {
     setViewMode(viewMode === "grid" ? "map" : "grid");
   };
+
+  // Memoize grid to optimize rendering for larger grids
+  const grid = useMemo(() => {
+    if (rows === 0 || cols === 0) {
+      return <p>No location data available.</p>;
+    }
+    return Array.from({ length: rows }).map((_, row) => (
+      <div key={row} className="grid-row">
+        {Array.from({ length: cols }).map((_, col) => (
+          <div
+            key={`${row}-${col}`}
+            className="grid-cell"
+            onClick={() => handleCellClick(row, col)}
+            style={{ backgroundColor: getCellColor(`${row}-${col}`) }}
+          ></div>
+        ))}
+      </div>
+    ));
+  }, [rows, cols, predictions, cellToLocation, maxHoney]);
 
   return (
     <div className="hivemap-page">
@@ -198,22 +201,7 @@ function HiveMap() {
             className={`grid-container ${viewMode === "map" ? "map-view" : ""}`}
             style={viewMode === "map" ? { backgroundImage: `url(${mapImage})` } : {}}
           >
-            {rows > 0 && cols > 0 ? (
-              Array.from({ length: rows }).map((_, row) => (
-                <div key={row} className="grid-row">
-                  {Array.from({ length: cols }).map((_, col) => (
-                    <div
-                      key={`${row}-${col}`}
-                      className="grid-cell"
-                      onClick={() => handleCellClick(row, col)}
-                      style={{ backgroundColor: getCellColor(`${row}-${col}`) }}
-                    ></div>
-                  ))}
-                </div>
-              ))
-            ) : (
-              <p>No location data available.</p>
-            )}
+            {grid}
           </div>
           {selectedCell && (
             <div className="popup-overlay">
