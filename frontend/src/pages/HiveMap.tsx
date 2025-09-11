@@ -70,120 +70,73 @@ function HiveMap() {
         temperature: "",
       });
     } catch (error) {
-      console.error("Error details:", error.response || error.message);
-      alert("Failed to get prediction. Check the server and console.");
+      console.error("Error getting prediction:", error);
     }
   };
 
-  const renderGrid = () => {
-    const grid = [];
-    for (let row = 0; row < 4; row++) {
-      for (let col = 0; col < 5; col++) {
-        const cellId = `${row}-${col}`;
-        const prediction = predictions[cellId];
-        let cellClass = "grid-cell";
-        if (prediction !== undefined) {
-          if (prediction > 32) cellClass += " green";
-          else if (prediction >= 30 && prediction < 32) cellClass += " blue";
-        }
-
-        grid.push(
-          <div
-            key={cellId}
-            className={cellClass}
-            onClick={() => handleCellClick(row, col)}
-          >
-            {prediction !== undefined ? (
-              <span className="prediction-text">{prediction.toFixed(2)}</span>
-            ) : (
-              <span className="placeholder-text">Click to Predict</span>
-            )}
-          </div>
-        );
-      }
-    }
-    return grid;
+  const getCellColor = (cellId) => {
+    const score = predictions[cellId];
+    if (score === undefined) return "#fff";
+    if (score > 0.7) return "green";
+    if (score > 0.4) return "blue";
+    return "red";
   };
 
-  const handleViewChange = (e) => {
-    setViewMode(e.target.value);
+  const toggleViewMode = () => {
+    setViewMode(viewMode === "grid" ? "map" : "grid");
   };
+
+  const rows = 50; // Increased from 10 for more cells
+  const cols = 50; // Increased from 10 for more cells
 
   return (
     <div className="hivemap-page">
       <Navbar />
       <div className="hive-map-container">
         <aside className="sidebar">
-          <h2 className="sidebar-title">Bee Hives</h2>
+          <h2 className="sidebar-title">Hive Locations</h2>
           <div className="search-container">
-            <input
-              type="text"
-              placeholder="Search hives..."
-              className="search-input"
-            />
+            <input type="text" placeholder="Search hives..." className="search-input" />
           </div>
           <ul className="hive-list">
             {hives.map((hive) => (
               <li key={hive.id} className="hive-list-item">
                 <h3>{hive.name}</h3>
-                <p>{new Date(hive.created_at).toLocaleString()}</p>
+                <p>Lat: {hive.location_lat}, Lng: {hive.location_lng}</p>
               </li>
             ))}
           </ul>
-          <div className="view-toggle">
-            <label>
-              <input
-                type="radio"
-                name="viewMode"
-                value="map"
-                checked={viewMode === "map"}
-                onChange={handleViewChange}
-              />
-              Map
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="viewMode"
-                value="grid"
-                checked={viewMode === "grid"}
-                onChange={handleViewChange}
-              />
-              Grid
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="viewMode"
-                value="prediction"
-                checked={viewMode === "prediction"}
-                onChange={handleViewChange}
-              />
-              Prediction
-            </label>
-          </div>
+          <button onClick={toggleViewMode} className="toggle-view-btn">
+            Switch to {viewMode === "grid" ? "Map" : "Grid"} View
+          </button>
         </aside>
-
-        <main className="map-container">
-          {viewMode === "map" ? (
-            <img src={mapImage} alt="Map" className="map-image" />
-          ) : (
-            <div className="grid-container">
-              {renderGrid()}
-              {viewMode === "prediction" && (
-                <img src={mapImage} alt="Map Overlay" className="map-overlay" />
-              )}
-            </div>
-          )}
+        <main className="map-section">
+          <div
+            className={`grid-container ${viewMode === "map" ? "map-view" : ""}`}
+            style={viewMode === "map" ? { backgroundImage: `url(${mapImage})` } : {}}
+          >
+            {Array.from({ length: rows }).map((_, row) => (
+              <div key={row} className="grid-row">
+                {Array.from({ length: cols }).map((_, col) => (
+                  <div
+                    key={`${row}-${col}`}
+                    className="grid-cell"
+                    onClick={() => handleCellClick(row, col)}
+                    style={{ backgroundColor: getCellColor(`${row}-${col}`) }}
+                  ></div>
+                ))}
+              </div>
+            ))}
+          </div>
           {selectedCell && (
             <div className="popup-overlay">
               <div className="popup-content">
-                <h3>Enter Hive Data</h3>
+                <h3>Enter Details for Cell {selectedCell}</h3>
                 <form onSubmit={handleSubmit} className="prediction-form">
                   <input
                     type="number"
                     name="hive_lat"
-                    placeholder="Latitude"
+                    placeholder="Hive Latitude"
                     value={formData.hive_lat}
                     onChange={handleInputChange}
                     step="any"
@@ -192,7 +145,7 @@ function HiveMap() {
                   <input
                     type="number"
                     name="hive_lng"
-                    placeholder="Longitude"
+                    placeholder="Hive Longitude"
                     value={formData.hive_lng}
                     onChange={handleInputChange}
                     step="any"
@@ -259,4 +212,4 @@ function HiveMap() {
   );
 }
 
-export default HiveMap; 
+export default HiveMap;
