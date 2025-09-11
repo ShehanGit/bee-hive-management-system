@@ -8,6 +8,12 @@ from flask import request, jsonify
 from app.ml_models.threat_detection.src.prediction_service_threat import predict_threat, get_model_meta
 from app.ml_models.threat_detection.src.alert_store import add_alert, load_alerts
 
+# In app/api.py, add:
+from app.controllers.potential_location_controller import potential_loc_blueprint
+
+# In app/api.py, add or update:
+from app.controllers.ml_controller import ml_blueprint
+
 api_bp = Blueprint('api_bp', __name__)
 
 # Register hive-related endpoints (if you want them under /hives)
@@ -18,6 +24,12 @@ api_bp.register_blueprint(sensor_blueprint, url_prefix='/')
 
 # Register IoT integration endpoints under /iot
 api_bp.register_blueprint(iot_blueprint, url_prefix='/')
+
+api_bp.register_blueprint(potential_loc_blueprint, url_prefix='/')
+
+api_bp.register_blueprint(ml_blueprint, url_prefix='/')
+
+
 
 #Threat detection component
 # Add model info route
