@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { fetchAlerts } from "../services/threatApi";
+import axios from "axios";
 import Navbar from "../components/Navbar";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer,
@@ -7,21 +7,47 @@ import {
 } from "recharts";
 import "./ThreatAlerts.css";
 
+// Map threat types to icons
+const getThreatIcon = (type) => {
+  switch (type) {
+    case "Wax_Moth":
+      return "🦋";
+    case "Predator":
+      return "🦊";
+    case "Environmental":
+      return "🌡️";
+    case "No_Threat":
+      return "✅";
+    default:
+      return "⚠️";
+  }
+};
+
 function ThreatAlerts() {
   const [alerts, setAlerts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const alertsPerPage = 10;
 
   useEffect(() => {
-    loadAlerts();
+    const fetchAlerts = async () => {
+      try {
+        const res = await axios.get("http://127.0.0.1:5000/api/threat/alerts");
+        setAlerts(res.data);
+      } catch (error) {
+        console.error("Error fetching alerts:", error);
+      }
+    };
+
+    fetchAlerts();
+    const interval = setInterval(fetchAlerts, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  const loadAlerts = async () => {
-    try {
-      const data = await fetchAlerts(10);
-      setAlerts(data);
-    } catch (error) {
-      console.error("Error fetching alerts:", error);
-    }
-  };
+  // Pagination calculations
+  const indexOfLast = currentPage * alertsPerPage;
+  const indexOfFirst = indexOfLast - alertsPerPage;
+  const currentAlerts = alerts.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(alerts.length / alertsPerPage);
 
   // Prepare chart data
   const pieData = alerts.reduce((acc, alert) => {
@@ -76,27 +102,69 @@ function ThreatAlerts() {
           </div>
         </div>
 
-        {/* Alerts Table */}
+        {/* Updated Alerts Table with Pagination */}
         <div className="alerts-table">
           <h2>📋 Recent Alerts</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Threat Type</th>
-                <th>Probability</th>
-              </tr>
-            </thead>
-            <tbody>
-              {alerts.map((alert, idx) => (
-                <tr key={idx}>
-                  <td>{alert.timestamp}</td>
-                  <td>{alert.threat_type}</td>
-                  <td>{(alert.probability * 100).toFixed(2)}%</td>
+          <div className="table-container">
+            <table className="paginated-alerts-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Threat Type</th>
+                  <th>Probability</th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {currentAlerts.length > 0 ? (
+                  currentAlerts.map((alert, idx) => (
+                    <tr key={idx}>
+                      <td>
+                        {alert.timestamp
+                          ? new Date(alert.timestamp).toLocaleString()
+                          : "—"}
+                      </td>
+                      <td>
+                        <span className="threat-icon">
+                          {getThreatIcon(alert.threat_type)}
+                        </span>{" "}
+                        {alert.threat_type}
+                      </td>
+                      <td>{(alert.probability * 100).toFixed(1)}%</td>
+                      <td>
+                        <button className="action-btn">View</button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: "center" }}>
+                      No alerts available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="pagination">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+            >
+              ◀ Prev
+            </button>
+            <span>
+              Page {currentPage} of {totalPages || 1}
+            </span>
+            <button
+              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={() => setCurrentPage((p) => p + 1)}
+            >
+              Next ▶
+            </button>
+          </div>
         </div>
       </main>
     </div>
