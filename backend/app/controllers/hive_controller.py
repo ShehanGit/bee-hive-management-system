@@ -66,3 +66,5 @@ def remove_hive(hive_id):
         return jsonify({"error": "Hive not found"}), 404
 
     return jsonify({"message": "Hive deleted successfully"}), 200
+
+

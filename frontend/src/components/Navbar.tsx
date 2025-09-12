@@ -38,6 +38,9 @@ function Navbar() {
             <FaBell style={{ marginRight: '5px' }} /> Notifications
           </Link>
         </li>
+        <li>
+          <Link to="/monitoring" onClick={() => setIsOpen(false)}>Monitoring Dashboard</Link>
+        </li>
       </ul>
     </nav>
   );
