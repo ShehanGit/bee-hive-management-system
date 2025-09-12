@@ -26,30 +26,39 @@ const getThreatIcon = (type) => {
 function ThreatAlerts() {
   const [alerts, setAlerts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedAlert, setSelectedAlert] = useState(null); // for popup
   const alertsPerPage = 10;
 
-  useEffect(() => {
-    const fetchAlerts = async () => {
-      try {
-        const res = await axios.get("http://127.0.0.1:5000/api/threat/alerts");
-        setAlerts(res.data);
-      } catch (error) {
-        console.error("Error fetching alerts:", error);
-      }
-    };
+  // When setting alerts from API
+useEffect(() => {
+  const fetchAlerts = async () => {
+    try {
+      const res = await axios.get("http://127.0.0.1:5000/api/threat/alerts");
+      // Attach recommendations if missing
+      const alertsWithRecs = res.data.map(alert => ({
+        ...alert,
+        recommendations:
+          alert.recommendations || getRecommendation(alert.threat_type),
+      }));
+      setAlerts(alertsWithRecs);
+    } catch (error) {
+      console.error("Error fetching alerts:", error);
+    }
+  };
 
-    fetchAlerts();
-    const interval = setInterval(fetchAlerts, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  fetchAlerts();
+  const interval = setInterval(fetchAlerts, 5000);
+  return () => clearInterval(interval);
+}, []);
 
-  // Pagination calculations
+
+  // Pagination
   const indexOfLast = currentPage * alertsPerPage;
   const indexOfFirst = indexOfLast - alertsPerPage;
   const currentAlerts = alerts.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(alerts.length / alertsPerPage);
 
-  // Prepare chart data
+  // Chart Data
   const pieData = alerts.reduce((acc, alert) => {
     const existing = acc.find(a => a.name === alert.threat_type);
     if (existing) existing.value++;
@@ -102,7 +111,7 @@ function ThreatAlerts() {
           </div>
         </div>
 
-        {/* Updated Alerts Table with Pagination */}
+        {/* Alerts Table */}
         <div className="alerts-table">
           <h2>📋 Recent Alerts</h2>
           <div className="table-container">
@@ -132,7 +141,12 @@ function ThreatAlerts() {
                       </td>
                       <td>{(alert.probability * 100).toFixed(1)}%</td>
                       <td>
-                        <button className="action-btn">View</button>
+                        <button
+                          className="action-btn"
+                          onClick={() => setSelectedAlert(alert)}
+                        >
+                          View
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -147,7 +161,7 @@ function ThreatAlerts() {
             </table>
           </div>
 
-          {/* Pagination Controls */}
+          {/* Pagination */}
           <div className="pagination">
             <button
               disabled={currentPage === 1}
@@ -166,6 +180,29 @@ function ThreatAlerts() {
             </button>
           </div>
         </div>
+
+        {/* Recommendation Modal */}
+        {selectedAlert && (
+          <div className="modal-overlay">
+            <div className="modal-card">
+              <h2>
+                {getThreatIcon(selectedAlert.threat_type)} {selectedAlert.threat_type}
+              </h2>
+              <p><b>Probability:</b> {(selectedAlert.probability * 100).toFixed(1)}%</p>
+              <h3>Recommended Actions:</h3>
+              {selectedAlert.recommendations && selectedAlert.recommendations.length > 0 ? (
+                <ul>
+                  {selectedAlert.recommendations.map((rec, i) => (
+                    <li key={i}>✅ {rec}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No recommendations available</p>
+              )}
+              <button className="close-btn" onClick={() => setSelectedAlert(null)}>Close</button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
