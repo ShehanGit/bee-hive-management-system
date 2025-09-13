@@ -373,18 +373,6 @@ function HealthIdentification() {
                   <div className="result-card bee-detection">
                     <div className="card-header">
                       <h3>🐝 Bee Detection</h3>
-                      <div className="confidence-indicator">
-                        <span className="confidence-label">Confidence</span>
-                        <div className="confidence-bar">
-                          <div 
-                            className="confidence-fill"
-                            style={{ width: `${result.bee_detection.confidence * 100}%` }}
-                          ></div>
-                        </div>
-                        <span className="confidence-value">
-                          {(result.bee_detection.confidence * 100).toFixed(1)}%
-                        </span>
-                      </div>
                     </div>
                     <div className="detection-status">
                       <span className={`status-badge ${result.bee_detection.is_bee ? 'positive' : 'negative'}`}>
@@ -397,18 +385,6 @@ function HealthIdentification() {
                     <div className="result-card disease-detection">
                       <div className="card-header">
                         <h3>🎯 Health Analysis</h3>
-                        <div className="confidence-indicator">
-                          <span className="confidence-label">Confidence</span>
-                          <div className="confidence-bar">
-                            <div 
-                              className="confidence-fill"
-                              style={{ width: `${result.disease_detection.confidence * 100}%` }}
-                            ></div>
-                          </div>
-                          <span className="confidence-value">
-                            {(result.disease_detection.confidence * 100).toFixed(1)}%
-                          </span>
-                        </div>
                       </div>
                       <div className="health-status">
                         <div 

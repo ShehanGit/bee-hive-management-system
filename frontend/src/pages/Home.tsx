@@ -14,7 +14,7 @@ function Home() {
         <div className="hero-content">
           <h1>Welcome to Bee Hive Management System</h1>
           <p>Effortlessly manage your hives with real-time data and insights.</p>
-          <Link to="/hive-management" className="hero-btn">Get Started</Link>
+          <Link to="/packages" className="hero-btn">Get Started</Link>
         </div>
       </header>
 

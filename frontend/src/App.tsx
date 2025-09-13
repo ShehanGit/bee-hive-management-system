@@ -7,8 +7,9 @@ import About from './pages/About.jsx';
 import HiveManagement from './pages/HiveManagement.jsx';
 import NewHivePlacement from './pages/HiveMap';
 import ThreatDetection from "./pages/ThreatDetection.jsx";
-import ThreatAlerts from "./pages/ThreatAlerts";
+import ThreatAlerts from "./pages/ThreatAlerts.jsx";
 import HealthIdentification from './pages/HealthIdentification.tsx';
+import Packages from './pages/Packages.tsx';
 
 
 
@@ -17,6 +18,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
+      <Route path="/packages" element={<Packages />} />
       <Route path="/hive-management" element={<HiveManagement />} />
       <Route path="/NewHivePlacement" element={<NewHivePlacement />} />
 

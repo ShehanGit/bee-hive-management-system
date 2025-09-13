@@ -28,6 +28,9 @@ function Navbar() {
           <Link to="/about" onClick={() => setIsOpen(false)}>About</Link>
         </li>
         <li>
+          <Link to="/packages" onClick={() => setIsOpen(false)}>Pricing</Link>
+        </li>
+        <li>
           <Link to="/hive-management" onClick={() => setIsOpen(false)}>Manage Hives</Link>
         </li>
         <li>
