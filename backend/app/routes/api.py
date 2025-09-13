@@ -10,6 +10,12 @@ from app.ml_models.threat_detection.src.prediction_service_threat import predict
 from app.ml_models.threat_detection.src.alert_store import add_alert, load_alerts
 from app.ml_models.threat_detection.src.recommendation_service import get_recommendations
 
+# In app/api.py, add:
+from app.controllers.potential_location_controller import potential_loc_blueprint
+
+# In app/api.py, add or update:
+from app.controllers.ml_controller import ml_blueprint
+
 api_bp = Blueprint('api_bp', __name__)
 
 # register existing blueprints (keep your existing ones)
@@ -17,7 +23,16 @@ api_bp.register_blueprint(hive_blueprint, url_prefix='/')
 api_bp.register_blueprint(sensor_blueprint, url_prefix='/')
 api_bp.register_blueprint(iot_blueprint, url_prefix='/')
 
-# Model info
+
+api_bp.register_blueprint(potential_loc_blueprint, url_prefix='/')
+
+api_bp.register_blueprint(ml_blueprint, url_prefix='/')
+
+
+
+#Threat detection component
+# Add model info route
+
 @api_bp.route("/threat/model_info", methods=["GET"])
 def threat_model_info():
     return jsonify(get_model_meta()), 200
