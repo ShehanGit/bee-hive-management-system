@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { fetchAlerts } from "../services/threatApi";
+import axios from "axios";
 import Navbar from "../components/Navbar";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer,
@@ -7,23 +7,58 @@ import {
 } from "recharts";
 import "./ThreatAlerts.css";
 
+// Map threat types to icons
+const getThreatIcon = (type) => {
+  switch (type) {
+    case "Wax_Moth":
+      return "🦋";
+    case "Predator":
+      return "🦊";
+    case "Environmental":
+      return "🌡️";
+    case "No_Threat":
+      return "✅";
+    default:
+      return "⚠️";
+  }
+};
+
 function ThreatAlerts() {
   const [alerts, setAlerts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedAlert, setSelectedAlert] = useState(null); // for popup
+  const alertsPerPage = 10;
 
-  useEffect(() => {
-    loadAlerts();
-  }, []);
-
-  const loadAlerts = async () => {
+  // When setting alerts from API
+useEffect(() => {
+  const fetchAlerts = async () => {
     try {
-      const data = await fetchAlerts(10);
-      setAlerts(data);
+      const res = await axios.get("http://127.0.0.1:5000/api/threat/alerts");
+      // Attach recommendations if missing
+      const alertsWithRecs = res.data.map(alert => ({
+        ...alert,
+        recommendations:
+          alert.recommendations || getRecommendation(alert.threat_type),
+      }));
+      setAlerts(alertsWithRecs);
     } catch (error) {
       console.error("Error fetching alerts:", error);
     }
   };
 
-  // Prepare chart data
+  fetchAlerts();
+  const interval = setInterval(fetchAlerts, 5000);
+  return () => clearInterval(interval);
+}, []);
+
+
+  // Pagination
+  const indexOfLast = currentPage * alertsPerPage;
+  const indexOfFirst = indexOfLast - alertsPerPage;
+  const currentAlerts = alerts.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(alerts.length / alertsPerPage);
+
+  // Chart Data
   const pieData = alerts.reduce((acc, alert) => {
     const existing = acc.find(a => a.name === alert.threat_type);
     if (existing) existing.value++;
@@ -79,25 +114,95 @@ function ThreatAlerts() {
         {/* Alerts Table */}
         <div className="alerts-table">
           <h2>📋 Recent Alerts</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Threat Type</th>
-                <th>Probability</th>
-              </tr>
-            </thead>
-            <tbody>
-              {alerts.map((alert, idx) => (
-                <tr key={idx}>
-                  <td>{alert.timestamp}</td>
-                  <td>{alert.threat_type}</td>
-                  <td>{(alert.probability * 100).toFixed(2)}%</td>
+          <div className="table-container">
+            <table className="paginated-alerts-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Threat Type</th>
+                  <th>Probability</th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {currentAlerts.length > 0 ? (
+                  currentAlerts.map((alert, idx) => (
+                    <tr key={idx}>
+                      <td>
+                        {alert.timestamp
+                          ? new Date(alert.timestamp).toLocaleString()
+                          : "—"}
+                      </td>
+                      <td>
+                        <span className="threat-icon">
+                          {getThreatIcon(alert.threat_type)}
+                        </span>{" "}
+                        {alert.threat_type}
+                      </td>
+                      <td>{(alert.probability * 100).toFixed(1)}%</td>
+                      <td>
+                        <button
+                          className="action-btn"
+                          onClick={() => setSelectedAlert(alert)}
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: "center" }}>
+                      No alerts available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="pagination">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+            >
+              ◀ Prev
+            </button>
+            <span>
+              Page {currentPage} of {totalPages || 1}
+            </span>
+            <button
+              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={() => setCurrentPage((p) => p + 1)}
+            >
+              Next ▶
+            </button>
+          </div>
         </div>
+
+        {/* Recommendation Modal */}
+        {selectedAlert && (
+          <div className="modal-overlay">
+            <div className="modal-card">
+              <h2>
+                {getThreatIcon(selectedAlert.threat_type)} {selectedAlert.threat_type}
+              </h2>
+              <p><b>Probability:</b> {(selectedAlert.probability * 100).toFixed(1)}%</p>
+              <h3>Recommended Actions:</h3>
+              {selectedAlert.recommendations && selectedAlert.recommendations.length > 0 ? (
+                <ul>
+                  {selectedAlert.recommendations.map((rec, i) => (
+                    <li key={i}>✅ {rec}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No recommendations available</p>
+              )}
+              <button className="close-btn" onClick={() => setSelectedAlert(null)}>Close</button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
