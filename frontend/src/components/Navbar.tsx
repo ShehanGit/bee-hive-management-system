@@ -34,10 +34,15 @@ function Navbar() {
           <Link to="/NewHivePlacement" onClick={() => setIsOpen(false)}>New Hive Placement</Link>
         </li>
         <li>
-          <Link to="/notifications" onClick={() => setIsOpen(false)}>
-            <FaBell style={{ marginRight: '5px' }} /> Notifications
-          </Link>
+
+          <Link to="/threat-detection" onClick={() => setIsOpen(false)}>Threat Detection</Link>
         </li>
+        <li>
+          <Link to="/alerts">Threat Alerts</Link>
+        </li>
+
+
+
       </ul>
     </nav>
   );
