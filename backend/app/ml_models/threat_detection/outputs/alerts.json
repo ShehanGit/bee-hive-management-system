@@ -1,5 +1,183 @@
 [
   {
+    "timestamp": "2025-09-12T16:43:32.615942",
+    "threat_type": "Environmental",
+    "probability": 0.9931601285934448,
+    "used_features": {
+      "weather_temp_c": 39.0,
+      "weather_humidity_pct": 200.0,
+      "hive_sound_db": 50.0,
+      "hive_sound_peak_freq": 210.0,
+      "vibration_hz": 56.0,
+      "vibration_var": 45.0,
+      "hour": 16,
+      "dayofweek": 4,
+      "is_evening": 0,
+      "temp_humidity": 7800.0,
+      "sound_roll3": 50.0,
+      "vib_roll3": 56.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 0.8928571428571429,
+      "peak_to_vib_ratio": 3.75
+    },
+    "recommendations": {
+      "priority": "Medium",
+      "actions": [
+        "Provide shade or relocate hive away from direct sun.",
+        "Ensure water source is nearby and accessible for bees.",
+        "Increase hive ventilation (e.g., screened bottom, vents).",
+        "Monitor local weather alerts and move hives before extreme events if possible."
+      ],
+      "notes": "Environmental stress (heat/humidity/rain) can reduce foraging and increase disease risk."
+    }
+  },
+  {
+    "timestamp": "2025-09-12T16:07:09.038785",
+    "threat_type": "Environmental",
+    "probability": 0.9979374408721924,
+    "used_features": {
+      "weather_temp_c": 29.0,
+      "weather_humidity_pct": 265.0,
+      "hive_sound_db": 68.0,
+      "hive_sound_peak_freq": 280.0,
+      "vibration_hz": 120.0,
+      "vibration_var": 167.0,
+      "hour": 16,
+      "dayofweek": 4,
+      "is_evening": 0,
+      "temp_humidity": 7685.0,
+      "sound_roll3": 68.0,
+      "vib_roll3": 120.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 0.5666666666666667,
+      "peak_to_vib_ratio": 2.3333333333333335
+    },
+    "recommendations": {
+      "priority": "Medium",
+      "actions": [
+        "Provide shade or relocate hive away from direct sun.",
+        "Ensure water source is nearby and accessible for bees.",
+        "Increase hive ventilation (e.g., screened bottom, vents).",
+        "Monitor local weather alerts and move hives before extreme events if possible."
+      ],
+      "notes": "Environmental stress (heat/humidity/rain) can reduce foraging and increase disease risk."
+    }
+  },
+  {
+    "timestamp": "2025-09-12T15:45:58.211599",
+    "threat_type": "Environmental",
+    "probability": 0.9772822856903076,
+    "used_features": {
+      "weather_temp_c": 31.0,
+      "weather_humidity_pct": 108.0,
+      "hive_sound_db": 199.0,
+      "hive_sound_peak_freq": 300.0,
+      "vibration_hz": 165.0,
+      "vibration_var": 238.0,
+      "hour": 15,
+      "dayofweek": 4,
+      "is_evening": 0,
+      "temp_humidity": 3348.0,
+      "sound_roll3": 199.0,
+      "vib_roll3": 165.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 1.206060606060606,
+      "peak_to_vib_ratio": 1.8181818181818181
+    },
+    "recommendations": {
+      "priority": "Medium",
+      "actions": [
+        "Provide shade or relocate hive away from direct sun.",
+        "Ensure water source is nearby and accessible for bees.",
+        "Increase hive ventilation (e.g., screened bottom, vents).",
+        "Monitor local weather alerts and move hives before extreme events if possible."
+      ],
+      "notes": "Environmental stress (heat/humidity/rain) can reduce foraging and increase disease risk."
+    }
+  },
+  {
+    "timestamp": "2025-09-11T17:05:59.428926",
+    "threat_type": "Predator",
+    "probability": 0.43306174874305725,
+    "used_features": {
+      "weather_temp_c": 35.0,
+      "weather_humidity_pct": 20.0,
+      "hive_sound_db": 23.0,
+      "hive_sound_peak_freq": 300.0,
+      "vibration_hz": 40.0,
+      "vibration_var": 59.0,
+      "hour": 17,
+      "dayofweek": 3,
+      "is_evening": 0,
+      "temp_humidity": 700.0,
+      "sound_roll3": 23.0,
+      "vib_roll3": 40.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 0.575,
+      "peak_to_vib_ratio": 7.5
+    },
+    "recommendations": {
+      "priority": "Critical",
+      "actions": [
+        "Narrow or close the hive entrance at night immediately.",
+        "Install entrance guards (mesh/metal) to stop predators.",
+        "Use physical barriers (fencing, elevated stands) to deter mammals.",
+        "Consider temporary ultrasonic deterrent devices (test first)."
+      ],
+      "notes": "Predator attacks are urgent — take physical measures immediately."
+    }
+  },
+  {
+    "timestamp": "2025-09-10T17:18:30.455762",
+    "threat_type": "Wax_Moth",
+    "probability": 0.9964435696601868,
+    "used_features": {
+      "weather_temp_c": 45.0,
+      "weather_humidity_pct": 32.0,
+      "hive_sound_db": 22.0,
+      "hive_sound_peak_freq": 34.0,
+      "vibration_hz": 78.0,
+      "vibration_var": 90.0,
+      "hour": 17,
+      "dayofweek": 2,
+      "is_evening": 0,
+      "temp_humidity": 1440.0,
+      "sound_roll3": 22.0,
+      "vib_roll3": 78.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 0.28205128205128205,
+      "peak_to_vib_ratio": 0.4358974358974359
+    }
+  },
+  {
+    "timestamp": "2025-09-10T16:50:21.435453",
+    "threat_type": "Wax_Moth",
+    "probability": 0.9965268969535828,
+    "used_features": {
+      "weather_temp_c": 38.0,
+      "weather_humidity_pct": 29.0,
+      "hive_sound_db": 40.0,
+      "hive_sound_peak_freq": 70.0,
+      "vibration_hz": 22.0,
+      "vibration_var": 67.0,
+      "hour": 16,
+      "dayofweek": 2,
+      "is_evening": 0,
+      "temp_humidity": 1102.0,
+      "sound_roll3": 40.0,
+      "vib_roll3": 22.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 1.8181818181818181,
+      "peak_to_vib_ratio": 3.1818181818181817
+    }
+  },
+  {
     "timestamp": "2025-09-10T06:45:19.406472",
     "threat_type": "Wax_Moth",
     "probability": 0.8399828672409058,

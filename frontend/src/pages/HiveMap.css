@@ -1,256 +1,225 @@
 :root {
-    --primary-color: #f9a602;
-    --secondary-color: #ffd600;
-    --background-color: #fdfaf3;
-    --sidebar-bg: #ffffff;
-    --text-color: #333;
-    --accent-color: #ffa000;
-    --green-color: #4caf50;
-    --blue-color: #2196f3;
-  }
-  
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  body {
-    font-family: "Poppins", sans-serif;
-    background: var(--background-color);
-    color: var(--text-color);
-  }
-  
-  .hivemap-page {
-    margin-top: 60px;
-  }
-  
-  .hive-map-container {
-    display: flex;
-    height: calc(100vh - 60px);
-  }
-  
-  .sidebar {
-    width: 320px;
-    background: var(--sidebar-bg);
-    padding: 1.5rem;
-    border-right: 1px solid #eee;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .sidebar-title {
-    font-size: 1.8rem;
-    color: var(--primary-color);
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
-  
-  .search-container {
-    margin-bottom: 1.5rem;
-  }
-  
-  .search-input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-  }
-  
-  .search-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-  }
-  
-  .hive-list {
-    list-style: none;
-    flex-grow: 1;
-  }
-  
-  .hive-list-item {
-    background: #fff;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  
-  .hive-list-item:hover {
-    background: #fff8e1;
-  }
-  
-  .hive-list-item h3 {
-    font-size: 1.2rem;
-  }
-  
-  .hive-list-item p {
-    font-size: 0.9rem;
-    color: #777;
-  }
-  
-  .view-toggle {
-    margin-top: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .view-toggle label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1rem;
-    cursor: pointer;
-  }
-  
-  .view-toggle input[type="radio"] {
-    accent-color: var(--primary-color);
-  }
-  
-  .map-container {
-    flex: 1;
-    position: relative;
-    padding: 0;
-  }
-  
-  .grid-container {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    gap: 0;
-    height: 100%;
-    width: 100%;
-    position: relative;
-  }
-  
-  .grid-cell {
-    background: #fff;
-    border: 1px solid var(--primary-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  
-  .grid-cell:hover {
-    background: var(--secondary-color);
-  }
-  
-  .grid-cell.green {
-    background: var(--green-color);
-    color: #fff;
-  }
-  
-  .grid-cell.blue {
-    background: var(--blue-color);
-    color: #fff;
-  }
-  
-  .placeholder-text {
-    font-size: 1rem;
-    color: #777;
-  }
-  
-  .prediction-text {
-    font-size: 1.2rem;
-    font-weight: bold;
-  }
-  
-  .map-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  .map-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.5; /* Adjust opacity as needed */
-    pointer-events: none; /* Allows clicks to pass through to the grid */
-  }
-  
-  .popup-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  
-  .popup-content {
-    background: #fff;
-    padding: 2rem;
-    border-radius: 8px;
-    width: 100%;
-    max-width: 400px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-  
-  .popup-content h3 {
-    color: var(--primary-color);
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
-  
-  .prediction-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .prediction-form input {
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-  }
-  
-  .prediction-form input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-  }
-  
-  .form-buttons {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-  }
-  
-  .prediction-form button {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  
-  .prediction-form button[type="submit"] {
-    background: var(--primary-color);
-    color: #fff;
-  }
-  
-  .prediction-form button[type="submit"]:hover {
-    background: var(--accent-color);
-  }
-  
-  .prediction-form button[type="button"] {
-    background: #777;
-    color: #fff;
-  }
-  
-  .prediction-form button[type="button"]:hover {
-    background: #555;
-  }
+  --primary-color: #f9a602;
+  --secondary-color: #ffd600;
+  --background-color: #fdfaf3;
+  --sidebar-bg: #ffffff;
+  --text-color: #333;
+  --accent-color: #ffa000;
+  --green-color: #4caf50;
+  --blue-color: #2196f3;
+  --red-color: #f44336;
+  --grid-border: #ddd;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: var(--background-color);
+  color: var(--text-color);
+}
+
+.hivemap-page {
+  margin-top: 60px;
+}
+
+.hive-map-container {
+  display: flex;
+  height: calc(100vh - 60px);
+}
+
+.sidebar {
+  width: 320px;
+  background: var(--sidebar-bg);
+  padding: 1.5rem;
+  border-right: 1px solid #eee;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-title {
+  font-size: 1.8rem;
+  color: var(--primary-color);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.search-container {
+  margin-bottom: 1.5rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.error-message {
+  color: var(--red-color);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.hive-list {
+  list-style: none;
+  flex-grow: 1;
+}
+
+.hive-list-item {
+  background: #fff;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.hive-list-item:hover {
+  background: #fff8e1;
+}
+
+.hive-list-item h3 {
+  font-size: 1.2rem;
+}
+
+.hive-list-item p {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.toggle-view-btn {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.3s ease;
+}
+
+.toggle-view-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.toggle-view-btn:hover:not(:disabled) {
+  background: var(--accent-color);
+}
+
+.map-section {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.grid-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+}
+
+.grid-container.map-view {
+  position: relative;
+}
+
+.grid-container.map-view::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: inherit;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.grid-row {
+  display: flex;
+  flex: 1;
+}
+
+.grid-cell {
+  flex: 1;
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--grid-border);
+  cursor: pointer;
+  transition: background 0.3s ease;
+  min-width: 20px; /* Added to ensure cells don't get too small */
+  min-height: 20px;
+}
+
+.grid-cell:hover {
+  border-color: var(--primary-color);
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.popup-content h3 {
+  color: var(--primary-color);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.location-details p {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.form-buttons button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  background: var(--primary-color);
+  color: #fff;
+  transition: background 0.3s ease;
+}
+
+.form-buttons button:hover {
+  background: var(--accent-color);
+}
