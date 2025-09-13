@@ -9,6 +9,7 @@ import NewHivePlacement from './pages/HiveMap';
 import ThreatDetection from "./pages/ThreatDetection.jsx";
 import ThreatAlerts from "./pages/ThreatAlerts";
 import HealthIdentification from './pages/HealthIdentification.tsx';
+import MonitoringDashboard from './pages/MonitoringDashboard';
 
 
 
@@ -24,6 +25,7 @@ function App() {
 
       <Route path="/threat-detection" element={<ThreatDetection />} />
       <Route path="/alerts" element={<ThreatAlerts />} />
+      <Route path="/monitoring" element={<MonitoringDashboard />} />
     </Routes>
   );
 }
