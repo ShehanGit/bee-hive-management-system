@@ -5,6 +5,7 @@ import About from './pages/About.tsx';
 import HiveManagement from './pages/HiveManagement.tsx';
 import NewHivePlacement from './pages/HiveMap.tsx';
 import Notifications from './pages/Notifications.tsx';
+import HealthIdentification from './pages/HealthIdentification.tsx';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Route path="/hive-management" element={<HiveManagement />} />
       <Route path="/NewHivePlacement" element={<NewHivePlacement />} />
       <Route path="/notifications" element={<Notifications />} />
+      <Route path="/health-identification" element={<HealthIdentification />} />
     </Routes>
   );
 }

@@ -31,6 +31,9 @@ function Navbar() {
           <Link to="/hive-management" onClick={() => setIsOpen(false)}>Manage Hives</Link>
         </li>
         <li>
+          <Link to="/health-identification" onClick={() => setIsOpen(false)}>Health Analysis</Link>
+        </li>
+        <li>
           <Link to="/NewHivePlacement" onClick={() => setIsOpen(false)}>New Hive Placement</Link>
         </li>
         <li>
