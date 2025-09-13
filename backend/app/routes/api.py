@@ -4,6 +4,11 @@ from flask import Blueprint, request, jsonify
 from app.controllers.hive_controller import hive_blueprint
 from app.controllers.sensor_controller import sensor_blueprint
 from app.controllers.iot_controller import iot_blueprint
+from app.controllers.weather_controller import weather_blueprint
+
+from app.controllers.synchronized_data_controller import synchronized_data_blueprint
+from app.controllers.synchronized_monitoring_controller import synchronized_monitoring_blueprint
+from app.controllers.hive_management_controller import hive_management_blueprint
 
 # threat detection imports
 from app.ml_models.threat_detection.src.prediction_service_threat import predict_threat, get_model_meta
@@ -24,14 +29,25 @@ api_bp.register_blueprint(sensor_blueprint, url_prefix='/')
 api_bp.register_blueprint(iot_blueprint, url_prefix='/')
 
 
+# Register weather data endpoints under /weather
+api_bp.register_blueprint(weather_blueprint, url_prefix='/')
+
+# Register synchronized data endpoints under /synchronized
+api_bp.register_blueprint(synchronized_data_blueprint, url_prefix='/')
+
+# Register new synchronized monitoring endpoints under /synchronized-monitoring
+api_bp.register_blueprint(synchronized_monitoring_blueprint, url_prefix='/')
+
+# Register hive management endpoints under /hive-management
+api_bp.register_blueprint(hive_management_blueprint, url_prefix='/')
+
+
+
 api_bp.register_blueprint(potential_loc_blueprint, url_prefix='/')
 
 api_bp.register_blueprint(ml_blueprint, url_prefix='/')
 
 
-
-#Threat detection component
-# Add model info route
 
 @api_bp.route("/threat/model_info", methods=["GET"])
 def threat_model_info():
@@ -68,3 +84,14 @@ def threat_alerts():
     limit = int(request.args.get("limit", 20))
     alerts = load_alerts()
     return jsonify(alerts[:limit]), 200
+
+
+
+
+
+
+
+
+
+
+

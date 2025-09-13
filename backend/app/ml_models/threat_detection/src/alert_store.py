@@ -16,10 +16,14 @@ ALERTS_FILE = OUTPUTS_DIR / "alerts.json"
 
 _alerts = []  # in-memory alerts
 
-# ========== MYSQL SETUP ==========
+# # ========== MYSQL SETUP ==========
+# DATABASE_URL = os.getenv(
+#     "DATABASE_URL",
+#     "mysql+pymysql://beehive_user:BeePass123@127.0.0.1:3306/beehive_db"
+# )
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "mysql+pymysql://beehive_user:BeePass123@127.0.0.1:3306/beehive_db"
+    "mysql+pymysql://root:root@localhost:3306/hive_db"
 )
 
 Base = declarative_base()
