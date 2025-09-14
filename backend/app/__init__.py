@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
 from flask_jwt_extended import JWTManager
+from app.extensions import db 
 
 db = SQLAlchemy()
 migrate = Migrate()
