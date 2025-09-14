@@ -19,4 +19,3 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children, className = '' 
 };
 
 export default LandingLayout;
-

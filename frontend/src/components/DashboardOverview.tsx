@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaHive, FaChartLine, FaBell, FaShieldAlt, FaHeartbeat } from 'react-icons/fa';
+import CleanHiveDashboard from './CleanHiveDashboard';
 import './DashboardOverview.css';
 
 interface DashboardOverviewProps {
@@ -78,77 +79,80 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ isSidebarCollapse
   ];
 
   return (
-    <div className={`dashboard-overview ${isSidebarCollapsed ? 'collapsed' : ''}`}>
-      <div className="dashboard-header">
-        <h1>Welcome back, Beekeeper! 🐝</h1>
-        <p>Here's what's happening with your hives today</p>
-      </div>
+    <>
+    <CleanHiveDashboard />
+    </>
+    // <div className={`dashboard-overview ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+    //   <div className="dashboard-header">
+    //     <h1>Welcome back, Beekeeper! 🐝</h1>
+    //     <p>Here's what's happening with your hives today</p>
+    //   </div>
 
-      {/* Stats Grid */}
-      <div className="stats-grid">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.id} className="stat-card">
-              <div className="stat-icon" style={{ color: stat.color }}>
-                <Icon />
-              </div>
-              <div className="stat-content">
-                <div className="stat-value">{stat.value}</div>
-                <div className="stat-label">{stat.label}</div>
-                <div className={`stat-change ${stat.changeType}`}>
-                  {stat.change}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+    //   {/* Stats Grid */}
+    //   <div className="stats-grid">
+    //     {stats.map((stat) => {
+    //       const Icon = stat.icon;
+    //       return (
+    //         <div key={stat.id} className="stat-card">
+    //           <div className="stat-icon" style={{ color: stat.color }}>
+    //             <Icon />
+    //           </div>
+    //           <div className="stat-content">
+    //             <div className="stat-value">{stat.value}</div>
+    //             <div className="stat-label">{stat.label}</div>
+    //             <div className={`stat-change ${stat.changeType}`}>
+    //               {stat.change}
+    //             </div>
+    //           </div>
+    //         </div>
+    //       );
+    //     })}
+    //   </div>
 
-      {/* Recent Activities */}
-      <div className="activities-section">
-        <h2>Recent Activities</h2>
-        <div className="activities-list">
-          {recentActivities.map((activity) => (
-            <div key={activity.id} className={`activity-item ${activity.status}`}>
-              <div className="activity-icon">
-                {activity.type === 'health-check' && <FaHeartbeat />}
-                {activity.type === 'threat-detected' && <FaShieldAlt />}
-                {activity.type === 'hive-added' && <FaHive />}
-                {activity.type === 'alert-resolved' && <FaBell />}
-              </div>
-              <div className="activity-content">
-                <div className="activity-message">{activity.message}</div>
-                <div className="activity-time">{activity.time}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+    //   {/* Recent Activities */}
+    //   <div className="activities-section">
+    //     <h2>Recent Activities</h2>
+    //     <div className="activities-list">
+    //       {recentActivities.map((activity) => (
+    //         <div key={activity.id} className={`activity-item ${activity.status}`}>
+    //           <div className="activity-icon">
+    //             {activity.type === 'health-check' && <FaHeartbeat />}
+    //             {activity.type === 'threat-detected' && <FaShieldAlt />}
+    //             {activity.type === 'hive-added' && <FaHive />}
+    //             {activity.type === 'alert-resolved' && <FaBell />}
+    //           </div>
+    //           <div className="activity-content">
+    //             <div className="activity-message">{activity.message}</div>
+    //             <div className="activity-time">{activity.time}</div>
+    //           </div>
+    //         </div>
+    //       ))}
+    //     </div>
+    //   </div>
 
-      {/* Quick Actions */}
-      <div className="quick-actions">
-        <h2>Quick Actions</h2>
-        <div className="actions-grid">
-          <button className="action-btn primary">
-            <FaHive />
-            <span>Add New Hive</span>
-          </button>
-          <button className="action-btn secondary">
-            <FaHeartbeat />
-            <span>Health Check</span>
-          </button>
-          <button className="action-btn secondary">
-            <FaShieldAlt />
-            <span>Threat Scan</span>
-          </button>
-          <button className="action-btn secondary">
-            <FaChartLine />
-            <span>View Analytics</span>
-          </button>
-        </div>
-      </div>
-    </div>
+    //   {/* Quick Actions */}
+    //   <div className="quick-actions">
+    //     <h2>Quick Actions</h2>
+    //     <div className="actions-grid">
+    //       <button className="action-btn primary">
+    //         <FaHive />
+    //         <span>Add New Hive</span>
+    //       </button>
+    //       <button className="action-btn secondary">
+    //         <FaHeartbeat />
+    //         <span>Health Check</span>
+    //       </button>
+    //       <button className="action-btn secondary">
+    //         <FaShieldAlt />
+    //         <span>Threat Scan</span>
+    //       </button>
+    //       <button className="action-btn secondary">
+    //         <FaChartLine />
+    //         <span>View Analytics</span>
+    //       </button>
+    //     </div>
+    //   </div>
+    // </div>
   );
 };
 
