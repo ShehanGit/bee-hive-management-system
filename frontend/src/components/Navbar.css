@@ -20,6 +20,31 @@
   transition: background 0.3s ease;
 }
 
+/* Navbar left section */
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Mobile sidebar toggle button */
+.mobile-sidebar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.mobile-sidebar-toggle:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #000;
+}
+
 /* Logo styling */
 .navbar-logo a {
   font-size: 2rem;
@@ -86,6 +111,12 @@
 }
 
 /* Responsive styling for mobile devices */
+@media (max-width: 1024px) {
+  .mobile-sidebar-toggle {
+    display: flex;
+  }
+}
+
 @media (max-width: 768px) {
   .navbar-menu {
     position: absolute;

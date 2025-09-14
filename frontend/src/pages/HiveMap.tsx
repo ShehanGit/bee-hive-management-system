@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
+
 import Navbar from "../components/Navbar";
 import mapImage from "../assets/images/map.png"; // Restore image map
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+
 import "./HiveMap.css";
 
 function HiveMap() {
@@ -379,7 +381,7 @@ function HiveMap() {
 
   return (
     <div className="hivemap-page">
-      <Navbar />
+      {/* <Navbar /> */}
       <div className="hive-map-container">
         <aside className="sidebar">
           <h2 className="sidebar-title">Hive Locations</h2>

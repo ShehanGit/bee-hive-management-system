@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import Navbar from '../components/Navbar';
+// import Navbar from '../components/Navbar';
 import './HealthIdentification.css';
 
 interface BeeDetection {
@@ -169,7 +169,7 @@ function HealthIdentification() {
 
   return (
     <div className="health-identification">
-      <Navbar />
+      {/* <Navbar /> */}
       
       <div className="health-content">
         <header className="health-header">
