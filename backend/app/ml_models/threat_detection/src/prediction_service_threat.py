@@ -75,3 +75,18 @@ def predict_threat(payload: dict):
         "probability": proba,
         "used_features": X.to_dict(orient="records")[0]
     }
+
+    # Send SMS alert if threat detected and SMS is available
+    if SMS_AVAILABLE and label != 'No_Threat':
+        try:
+            sms_sent = send_threat_sms(result)
+            result['sms_sent'] = sms_sent
+            if sms_sent:
+                print(f"SMS alert sent for threat: {label}")
+            else:
+                print(f"Failed to send SMS alert for threat: {label}")
+        except Exception as e:
+            print(f"Error sending SMS: {e}")
+            result['sms_error'] = str(e)
+    
+    return result
