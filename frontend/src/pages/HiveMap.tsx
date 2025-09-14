@@ -18,14 +18,18 @@ function HiveMap() {
   const [maxHoney, setMaxHoney] = useState(1);
   const [rows, setRows] = useState(0);
   const [cols, setCols] = useState(0);
+  const [uniqueLats, setUniqueLats] = useState([]);
+  const [uniqueLngs, setUniqueLngs] = useState([]);
   const [viewMode, setViewMode] = useState("grid"); // grid, image-map, real-map
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [resourceType, setResourceType] = useState('');
+  const [resourceMap, setResourceMap] = useState(new Map());  // Map cellId to resource type
 
   const API_BASE = "http://127.0.0.1:5000/api";
   const CENTER = [6.9271, 79.8612];
   const ZOOM = 13;
+  const EPSILON = 0.000001;  // Tolerance for floating-point comparison
 
   const fetchHives = async () => {
     try {
@@ -40,11 +44,30 @@ function HiveMap() {
   const fetchResources = async () => {
     try {
       const res = await axios.get(`${API_BASE}/resources`);
-      setResources(Array.isArray(res.data) ? res.data : []);
+      const resourcesData = Array.isArray(res.data) ? res.data : [];
+      setResources(resourcesData);
     } catch (error) {
       console.error("Error fetching resources:", error);
       setError("Failed to fetch resources.");
     }
+  };
+
+  const updateResourceMap = () => {
+    const newResourceMap = new Map();
+    resources.forEach((res) => {
+      // Find matching cellId for resource lat/lng with tolerance
+      const matchingLoc = potentialLocations.find(
+        (loc) => Math.abs(loc.lat - res.lat) < EPSILON && Math.abs(loc.lng - res.lng) < EPSILON
+      );
+      if (matchingLoc) {
+        const row = uniqueLats.indexOf(matchingLoc.lat);
+        const col = uniqueLngs.indexOf(matchingLoc.lng);
+        if (row !== -1 && col !== -1) {
+          newResourceMap.set(`${row}-${col}`, res.type);
+        }
+      }
+    });
+    setResourceMap(newResourceMap);
   };
 
   const fetchPotentialLocations = async () => {
@@ -70,28 +93,54 @@ function HiveMap() {
       return;
     }
 
-    const uniqueLats = [...new Set(locations.map((l) => l.lat))].sort((a, b) => b - a);
-    const uniqueLngs = [...new Set(locations.map((l) => l.lng))].sort((a, b) => a - b);
+    const uniqueLatsArr = [...new Set(locations.map((l) => l.lat))].sort((a, b) => b - a);
+    const uniqueLngsArr = [...new Set(locations.map((l) => l.lng))].sort((a, b) => a - b);
+    setUniqueLats(uniqueLatsArr);
+    setUniqueLngs(uniqueLngsArr);
 
     const newPredictions = {};
     const newCellToLocation = {};
     locations.forEach((l) => {
-      const row = uniqueLats.indexOf(l.lat);
-      const col = uniqueLngs.indexOf(l.lng);
+      const row = uniqueLatsArr.indexOf(l.lat);
+      const col = uniqueLngsArr.indexOf(l.lng);
       const cellId = `${row}-${col}`;
       newPredictions[cellId] = l.honey_production;
       newCellToLocation[cellId] = l;
     });
 
+    // Fill in all cells with dummy data if no prediction
+    for (let row = 0; row < uniqueLatsArr.length; row++) {
+      for (let col = 0; col < uniqueLngsArr.length; col++) {
+        const cellId = `${row}-${col}`;
+        if (!newCellToLocation[cellId]) {
+          newCellToLocation[cellId] = {
+            lat: uniqueLatsArr[row],
+            lng: uniqueLngsArr[col],
+            temperature: 0,
+            humidity: 0,
+            sunlight_exposure: 0,
+            wind_speed: 0,
+            dist_to_water_source: 0,
+            dist_to_flowering_area: 0,
+            dist_to_feeding_station: 0,
+            honey_production: null
+          };
+        }
+      }
+    }
+
     setPredictions(newPredictions);
     setCellToLocation(newCellToLocation);
-    setRows(uniqueLats.length);
-    setCols(uniqueLngs.length);
+    setRows(uniqueLatsArr.length);
+    setCols(uniqueLngsArr.length);
 
     const honeyValues = Object.values(newPredictions).filter(
       (v) => v !== null && v !== undefined
     );
     setMaxHoney(honeyValues.length > 0 ? Math.max(...honeyValues) : 1);
+
+    // Update resource map after processing locations
+    updateResourceMap();
   };
 
   const generateGrid = async () => {
@@ -157,7 +206,6 @@ function HiveMap() {
       console.log("Resource added successfully");
       await fetchResources();
       await recalculateDistances();
-      await predictAll();
       await fetchPotentialLocations();
       setError(null);
     } catch (error) {
@@ -172,12 +220,38 @@ function HiveMap() {
     fetchPotentialLocations();
   }, []);
 
+  useEffect(() => {
+    updateResourceMap();
+  }, [resources, potentialLocations, uniqueLats, uniqueLngs]);
+
   const handleCellClick = (row, col) => {
     const cellId = `${row}-${col}`;
-    if (cellToLocation[cellId]) {
-      setSelectedCell(cellId);
-      setResourceType('');
+    let loc = cellToLocation[cellId];
+    if (!loc) {
+      // Create dummy for blank cells
+      const lat = uniqueLats[row];
+      const lng = uniqueLngs[col];
+      if (lat !== undefined && lng !== undefined) {
+        loc = {
+          lat,
+          lng,
+          temperature: 0,
+          humidity: 0,
+          sunlight_exposure: 0,
+          wind_speed: 0,
+          dist_to_water_source: 0,
+          dist_to_flowering_area: 0,
+          dist_to_feeding_station: 0,
+          honey_production: null
+        };
+        setCellToLocation((prev) => ({ ...prev, [cellId]: loc }));
+      } else {
+        console.warn("No location data for cell:", cellId);
+        return;
+      }
     }
+    setSelectedCell(cellId);
+    setResourceType('');
   };
 
   const handleAddResource = () => {
@@ -189,6 +263,13 @@ function HiveMap() {
   };
 
   const getCellColor = (cellId) => {
+    const resType = resourceMap.get(cellId);
+    if (resType) {
+      if (resType === 'water') return "#0000FF";  // Blue
+      if (resType === 'flowering') return "#FFFF00";  // Yellow
+      if (resType === 'feeding') return "#FFA500";  // Orange
+      return "#800080";  // Purple fallback
+    }
     const score = predictions[cellId];
     if (score === undefined || score === null) return "#fff";
     const normalized = score / maxHoney;
@@ -218,7 +299,7 @@ function HiveMap() {
         ))}
       </div>
     ));
-  }, [rows, cols, predictions, cellToLocation, maxHoney]);
+  }, [rows, cols, predictions, cellToLocation, maxHoney, resourceMap, uniqueLats, uniqueLngs]);
 
   // Image map view with fixed background
   const imageMapView = (
@@ -232,7 +313,7 @@ function HiveMap() {
         position: 'relative'
       }}
     >
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0.5 }}>  {/* Reduced opacity */}
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0.3 }}>
         {grid}
       </div>
     </div>
@@ -273,19 +354,26 @@ function HiveMap() {
           </Popup>
         </Marker>
       ))}
-      {resources.map((res) => (
-        <Circle
-          key={res.id}
-          center={[res.lat, res.lng]}
-          radius={100}
-          pathOptions={{ color: 'purple', fillColor: 'purple', fillOpacity: 0.7 }}
-        >
-          <Popup>
-            <h3>Resource: {res.type}</h3>
-            <p>Lat: {res.lat}, Lng: {res.lng}</p>
-          </Popup>
-        </Circle>
-      ))}
+      {resources.map((res) => {
+        let color;
+        if (res.type === 'water') color = 'blue';
+        else if (res.type === 'flowering') color = 'yellow';
+        else if (res.type === 'feeding') color = 'orange';
+        else color = 'purple';
+        return (
+          <Circle
+            key={res.id}
+            center={[res.lat, res.lng]}
+            radius={100}
+            pathOptions={{ color: color, fillColor: color, fillOpacity: 0.7 }}
+          >
+            <Popup>
+              <h3>Resource: {res.type}</h3>
+              <p>Lat: {res.lat}, Lng: {res.lng}</p>
+            </Popup>
+          </Circle>
+        );
+      })}
     </MapContainer>
   );
 
@@ -358,13 +446,13 @@ function HiveMap() {
                   <div className="location-details">
                     <p><strong>Latitude:</strong> {cellToLocation[selectedCell].lat}</p>
                     <p><strong>Longitude:</strong> {cellToLocation[selectedCell].lng}</p>
-                    <p><strong>Temperature:</strong> {cellToLocation[selectedCell].temperature} °C</p>
-                    <p><strong>Humidity:</strong> {cellToLocation[selectedCell].humidity} %</p>
-                    <p><strong>Sunlight Exposure:</strong> {cellToLocation[selectedCell].sunlight_exposure} hours/day</p>
-                    <p><strong>Wind Speed:</strong> {cellToLocation[selectedCell].wind_speed} km/h</p>
-                    <p><strong>Dist. to Water Source:</strong> {cellToLocation[selectedCell].dist_to_water_source} km</p>
-                    <p><strong>Dist. to Flowering Area:</strong> {cellToLocation[selectedCell].dist_to_flowering_area} km</p>
-                    <p><strong>Dist. to Feeding Station:</strong> {cellToLocation[selectedCell].dist_to_feeding_station} km</p>
+                    <p><strong>Temperature:</strong> {cellToLocation[selectedCell].temperature || 'N/A'} °C</p>
+                    <p><strong>Humidity:</strong> {cellToLocation[selectedCell].humidity || 'N/A'} %</p>
+                    <p><strong>Sunlight Exposure:</strong> {cellToLocation[selectedCell].sunlight_exposure || 'N/A'} hours/day</p>
+                    <p><strong>Wind Speed:</strong> {cellToLocation[selectedCell].wind_speed || 'N/A'} km/h</p>
+                    <p><strong>Dist. to Water Source:</strong> {cellToLocation[selectedCell].dist_to_water_source || 'N/A'} km</p>
+                    <p><strong>Dist. to Flowering Area:</strong> {cellToLocation[selectedCell].dist_to_flowering_area || 'N/A'} km</p>
+                    <p><strong>Dist. to Feeding Station:</strong> {cellToLocation[selectedCell].dist_to_feeding_station || 'N/A'} km</p>
                     <p>
                       <strong>Predicted Honey Production:</strong>{" "}
                       {cellToLocation[selectedCell].honey_production !== null
