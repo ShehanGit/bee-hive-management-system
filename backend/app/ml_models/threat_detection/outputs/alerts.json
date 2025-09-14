@@ -1,5 +1,38 @@
 [
   {
+    "timestamp": "2025-09-14T07:19:10.945025",
+    "threat_type": "Environmental",
+    "probability": 0.9932135343551636,
+    "used_features": {
+      "weather_temp_c": 39.0,
+      "weather_humidity_pct": 90.0,
+      "hive_sound_db": 50.0,
+      "hive_sound_peak_freq": 210.0,
+      "vibration_hz": 103.0,
+      "vibration_var": 450.0,
+      "hour": 7,
+      "dayofweek": 6,
+      "is_evening": 0,
+      "temp_humidity": 3510.0,
+      "sound_roll3": 50.0,
+      "vib_roll3": 103.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 0.4854368932038835,
+      "peak_to_vib_ratio": 2.0388349514563107
+    },
+    "recommendations": {
+      "priority": "Medium",
+      "actions": [
+        "Provide shade or relocate hive away from direct sun.",
+        "Ensure water source is nearby and accessible for bees.",
+        "Increase hive ventilation (e.g., screened bottom, vents).",
+        "Monitor local weather alerts and move hives before extreme events if possible."
+      ],
+      "notes": "Environmental stress (heat/humidity/rain) can reduce foraging and increase disease risk."
+    }
+  },
+  {
     "timestamp": "2025-09-12T16:43:32.615942",
     "threat_type": "Environmental",
     "probability": 0.9931601285934448,
