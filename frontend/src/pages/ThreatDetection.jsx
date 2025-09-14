@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import Navbar from "../components/Navbar";
+
+// import Navbar from "../components/Navbar";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import "./ThreatDetection.css";
 
@@ -127,7 +128,7 @@ function ThreatDetection() {
 
   return (
     <div className="threat-detection-page">
-      <Navbar />
+      {/* <Navbar /> */}
       
       {/* Bell Notification Icon */}
       <div className="notification-container" ref={notificationRef}>

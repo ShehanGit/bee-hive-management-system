@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import Navbar from '../components/Navbar';
+// import Navbar from '../components/Navbar';
 import { FaBell, FaExclamationTriangle, FaTimesCircle, FaTrashAlt, FaTimes } from 'react-icons/fa'; // Added FaTimes for dismiss
 import './Notifications.css';
 
@@ -75,7 +75,7 @@ function Notifications() {
 
   return (
     <div className="notifications-page">
-      <Navbar />
+      {/* <Navbar /> */}
       <main className="notifications-main">
         <section className="notifications-header">
           <div className="header-content">

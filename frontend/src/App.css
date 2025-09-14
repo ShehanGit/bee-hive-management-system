@@ -1,8 +1,132 @@
+/* App.css - Main Layout Styles */
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f9fafb;
+}
+
+.main-content {
+  margin-left: 280px; /* Full sidebar width */
+  margin-top: 0; /* No navbar, so no top margin */
+  min-height: 100vh;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  background: #f9fafb;
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: 70px; /* Collapsed sidebar width */
+}
+
+.main-content.sidebar-open {
+  margin-left: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .main-content.sidebar-collapsed {
+    margin-left: 0;
+  }
+  
+  .main-content.sidebar-open {
+    margin-left: 0;
+  }
+}
+
+/* Content area styling */
+.main-content > * {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Remove default page margins/padding that might interfere */
+.main-content .home,
+.main-content .hive-management,
+.main-content .hivemap-page,
+.main-content .health-identification,
+.main-content .threat-detection-page,
+.main-content .threat-alerts,
+.main-content .packages {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Ensure pages don't have conflicting styles */
+.main-content .home {
+  margin-top: 0;
+}
+
+.main-content .hive-management {
+  margin-top: 0;
+}
+
+.main-content .hivemap-page {
+  margin-top: 0;
+}
+
+.main-content .health-identification {
+  margin-top: 0;
+}
+
+.main-content .threat-detection-page {
+  margin-top: 0;
+}
+
+.main-content .threat-alerts main {
+  margin-top: 0;
+}
+
+.main-content .packages {
+  margin-top: 0;
+}
+
+/* Smooth transitions for all layout changes */
+* {
+  box-sizing: border-box;
+}
+
+/* Ensure proper z-index stacking */
+.navbar {
+  z-index: 1000;
+}
+
+.sidebar {
+  z-index: 999;
+}
+
+/* Mobile overlay for sidebar */
+@media (max-width: 1024px) {
+  .sidebar.open + .main-content::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    animation: fadeIn 0.3s ease;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Legacy styles preserved for compatibility */
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
 }
 
 .logo {
@@ -11,9 +135,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }

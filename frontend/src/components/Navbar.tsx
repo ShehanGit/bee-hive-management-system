@@ -1,19 +1,38 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaBell } from 'react-icons/fa'; // Optional: Bell icon for notification feel
+import { FaBell, FaBars } from 'react-icons/fa'; // Optional: Bell icon for notification feel
 import './Navbar.css';
 
-function Navbar() {
+interface NavbarProps {
+  onMobileSidebarToggle?: () => void;
+}
+
+function Navbar({ onMobileSidebarToggle }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
 
+  const handleMobileSidebarToggle = () => {
+    if (onMobileSidebarToggle) {
+      onMobileSidebarToggle();
+    }
+  };
+
   return (
     <nav className="navbar">
-      <div className="navbar-logo">
-        <Link to="/">BeeSync</Link>
+      <div className="navbar-left">
+        <button 
+          className="mobile-sidebar-toggle"
+          onClick={handleMobileSidebarToggle}
+          aria-label="Toggle sidebar"
+        >
+          <FaBars />
+        </button>
+        <div className="navbar-logo">
+          <Link to="/">BeeSync</Link>
+        </div>
       </div>
       <div className="navbar-hamburger" onClick={toggleMenu}>
         <div className={`bar ${isOpen ? 'open' : ''}`}></div>

@@ -24,12 +24,12 @@ body {
 }
 
 .hivemap-page {
-  margin-top: 60px;
+  margin-top: 0; /* Adjusted since navbar is commented out */
 }
 
 .hive-map-container {
   display: flex;
-  height: calc(100vh - 60px);
+  height: 100vh; /* Adjusted since navbar is commented out */
 }
 
 .sidebar {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import Navbar from "../components/Navbar";
+// import Navbar from "../components/Navbar";
 import mapImage from "../assets/images/map.png"; // Ensure this image exists
 import "./HiveMap.css";
 
@@ -164,7 +164,7 @@ function HiveMap() {
 
   return (
     <div className="hivemap-page">
-      <Navbar />
+      {/* <Navbar /> */}
       <div className="hive-map-container">
         <aside className="sidebar">
           <h2 className="sidebar-title">Hive Locations</h2>

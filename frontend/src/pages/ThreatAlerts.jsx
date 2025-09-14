@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Navbar from "../components/Navbar";
+// import Navbar from "../components/Navbar";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -70,7 +70,7 @@ useEffect(() => {
 
   return (
     <div className="threat-alerts">
-      <Navbar />
+      {/* <Navbar /> */}
       <main>
         <h1>🚨 Real-Time Hive Threat Alerts</h1>
 
