@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+
 // import Navbar from "../components/Navbar";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import "./ThreatDetection.css";
 
 // Map threat types to emojis
