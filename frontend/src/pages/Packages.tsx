@@ -1,8 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import './Packages.css';
 
 function Packages() {
+  const navigate = useNavigate();
+  
   const packages = [
     {
       title: '1-3 Hives',
@@ -46,18 +49,12 @@ function Packages() {
   ];
 
   const handleGetStarted = (packageTitle: string, price: string) => {
-    const subject = `BeeSync Package Subscription - ${packageTitle}`;
-    const body = `Hello,
-
-I am interested in subscribing to the ${packageTitle} package at ${price}/month for my bee hive management system.
-
-Please provide me with the next steps to get started.
-
-Best regards`;
-    
-    const mailtoLink = `mailto:support@beesync.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    
-    window.location.href = mailtoLink;
+    navigate('/register-hive', {
+      state: {
+        title: packageTitle,
+        price: price
+      }
+    });
   };
 
   return (

@@ -6,10 +6,13 @@ import Home from './pages/Home.jsx';
 import About from './pages/About.jsx';
 import HiveManagement from './pages/HiveManagement.jsx';
 import NewHivePlacement from './pages/HiveMap';
+// @ts-ignore
 import ThreatDetection from "./pages/ThreatDetection.jsx";
+// @ts-ignore
 import ThreatAlerts from "./pages/ThreatAlerts.jsx";
 import HealthIdentification from './pages/HealthIdentification.tsx';
 import Packages from './pages/Packages.tsx';
+import RegisterHive from './pages/RegisterHive.tsx';
 
 
 
@@ -19,6 +22,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
       <Route path="/packages" element={<Packages />} />
+      <Route path="/register-hive" element={<RegisterHive />} />
       <Route path="/hive-management" element={<HiveManagement />} />
       <Route path="/NewHivePlacement" element={<NewHivePlacement />} />
 
