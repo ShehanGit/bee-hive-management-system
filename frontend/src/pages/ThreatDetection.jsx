@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import Navbar from "../components/Navbar";
+// import Navbar from "../components/Navbar";
 import "./ThreatDetection.css";
 
 // Map threat types to emojis
@@ -111,7 +111,7 @@ function ThreatDetection() {
 
   return (
     <div className="threat-detection-page">
-      <Navbar />
+      {/* <Navbar /> */}
       
       {/* Bell Notification Icon */}
       <div className="notification-container" ref={notificationRef}>

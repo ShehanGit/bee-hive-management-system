@@ -204,7 +204,7 @@ h2 {
 /* Bell Notification Styles */
 .notification-container {
   position: fixed;
-  top: 110px;
+  top: 50px; /* Adjusted since navbar is commented out */
   right: 30px;
   z-index: 1000;
 }
