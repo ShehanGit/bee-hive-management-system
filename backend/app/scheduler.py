@@ -10,7 +10,7 @@ def start_scheduler(app):
             fetch_and_save_iot_data(1)  # Replace 1 with appropriate hive_id if needed
 
     # Schedule the job to run every 0.5 minute
-    scheduler.add_job(scheduled_job, 'interval', minutes=0.5)
+    # scheduler.add_job(scheduled_job, 'interval', minutes=0.5)
     
     scheduler.start()
     
