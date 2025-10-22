@@ -5,7 +5,7 @@ class Config:
     # Database Configuration
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'DATABASE_URL', 
-        'mysql+pymysql://root:root@localhost/hive_db'
+        'mysql+pymysql://root:admin@localhost/hive_db'
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
