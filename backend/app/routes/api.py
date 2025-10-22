@@ -16,6 +16,15 @@ from app.controllers.potential_location_controller import potential_loc_blueprin
 # In app/api.py, add or update:
 from app.controllers.ml_controller import ml_blueprint
 
+
+# Missing controller imports
+from app.controllers.weather_controller import weather_blueprint
+from app.controllers.synchronized_data_controller import synchronized_data_blueprint
+from app.controllers.synchronized_monitoring_controller import synchronized_monitoring_blueprint
+from app.controllers.hive_management_controller import hive_management_blueprint
+from app.controllers.performance_controller import performance_blueprint
+from app.controllers.historical_performance_controller import historical_performance_blueprint
+
 api_bp = Blueprint('api_bp', __name__)
 
 # register existing blueprints (keep your existing ones)
@@ -27,6 +36,15 @@ api_bp.register_blueprint(iot_blueprint, url_prefix='/')
 api_bp.register_blueprint(potential_loc_blueprint, url_prefix='/')
 
 api_bp.register_blueprint(ml_blueprint, url_prefix='/')
+
+
+# Performace Predict blueprint registrations
+api_bp.register_blueprint(weather_blueprint, url_prefix='/')
+api_bp.register_blueprint(synchronized_data_blueprint, url_prefix='/')
+api_bp.register_blueprint(synchronized_monitoring_blueprint, url_prefix='/')
+api_bp.register_blueprint(hive_management_blueprint, url_prefix='/')
+api_bp.register_blueprint(performance_blueprint, url_prefix='/')
+api_bp.register_blueprint(historical_performance_blueprint, url_prefix='/')
 
 
 

@@ -1,5 +1,38 @@
 [
   {
+    "timestamp": "2025-10-20T06:30:40.385861",
+    "threat_type": "Wax_Moth",
+    "probability": 0.9981023669242859,
+    "used_features": {
+      "weather_temp_c": 28.0,
+      "weather_humidity_pct": 76.0,
+      "hive_sound_db": 44.9,
+      "hive_sound_peak_freq": 58.0,
+      "vibration_hz": 80.0,
+      "vibration_var": 56.0,
+      "hour": 6,
+      "dayofweek": 0,
+      "is_evening": 0,
+      "temp_humidity": 2128.0,
+      "sound_roll3": 44.9,
+      "vib_roll3": 80.0,
+      "sound_var3": 0.0,
+      "vib_var3": 0.0,
+      "db_to_vib_ratio": 0.56125,
+      "peak_to_vib_ratio": 0.725
+    },
+    "recommendations": {
+      "priority": "High",
+      "actions": [
+        "Close hive entrance at dusk and dawn to prevent moth entry.",
+        "Inspect frames for larvae/galleries and remove heavily infested combs.",
+        "Freeze infested combs (−18°C for 24–48 hrs) or replace them.",
+        "Improve hive cleanliness and maintain strong colony population."
+      ],
+      "notes": "Wax moths favour warm, humid, weak colonies; reduce humidity and strengthen colonies."
+    }
+  },
+  {
     "timestamp": "2025-09-12T16:43:32.615942",
     "threat_type": "Environmental",
     "probability": 0.9931601285934448,

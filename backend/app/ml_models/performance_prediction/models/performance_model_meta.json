@@ -1,0 +1,38 @@
+{
+  "model_name": "XGBoost",
+  "feature_columns": [
+    "weather_temperature",
+    "weather_humidity",
+    "weather_wind_speed",
+    "weather_light_intensity",
+    "weather_rainfall",
+    "sensor_temperature",
+    "sensor_humidity",
+    "sensor_sound",
+    "temp_differential",
+    "humidity_differential",
+    "favorable_foraging",
+    "thermal_stress",
+    "sound_activity",
+    "hour_sin",
+    "hour_cos",
+    "month_sin",
+    "month_cos",
+    "yala_season",
+    "maha_season",
+    "temp_variance_1h",
+    "sound_trend_1h",
+    "weather_stability_1h"
+  ],
+  "class_mapping": {
+    "1": 0,
+    "3": 1,
+    "5": 2
+  },
+  "model_files": {
+    "model": "models/performance_model.pkl",
+    "scaler": "models/scaler.pkl"
+  },
+  "training_date": "2025-09-15T09:30:59.898466",
+  "model_type": "hive_performance_prediction"
+}
