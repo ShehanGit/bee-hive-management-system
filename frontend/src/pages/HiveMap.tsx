@@ -16,6 +16,8 @@ function HiveMap() {
   const [viewMode, setViewMode] = useState("grid");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [greenThreshold, setGreenThreshold] = useState(0);
+  const [blueThreshold, setBlueThreshold] = useState(0);
 
   const API_BASE = "http://127.0.0.1:5000/api";
 
@@ -55,6 +57,8 @@ function HiveMap() {
       setPredictions({});
       setCellToLocation({});
       setMaxHoney(1);
+      setGreenThreshold(0);
+      setBlueThreshold(0);
       return;
     }
 
@@ -96,7 +100,20 @@ function HiveMap() {
     const honeyValues = Object.values(newPredictions).filter(
       (v) => v !== null && v !== undefined && v > 0
     );
-    setMaxHoney(honeyValues.length > 0 ? Math.max(...honeyValues) : 1);
+
+    if (honeyValues.length > 0) {
+      const sortedHoney = [...honeyValues].sort((a, b) => b - a);
+      const num = sortedHoney.length;
+      const greenIndex = Math.max(Math.floor(num * 0.4) - 1, 0);
+      const blueIndex = Math.max(Math.floor(num * 0.7) - 1, 0);
+      setGreenThreshold(sortedHoney[greenIndex]);
+      setBlueThreshold(sortedHoney[blueIndex]);
+      setMaxHoney(Math.max(...honeyValues));
+    } else {
+      setGreenThreshold(0);
+      setBlueThreshold(0);
+      setMaxHoney(1);
+    }
   };
 
   // Generate grid
@@ -192,10 +209,9 @@ function HiveMap() {
   const getCellColor = (cellId) => {
     const score = predictions[cellId];
     if (score === undefined || score === null || score <= 0) return "#ffffff";
-    const normalized = maxHoney > 0 ? score / maxHoney : 0;
-    if (normalized > 0.7) return "var(--green-color)";
-    if (normalized > 0.4) return "var(--blue-color)";
-    return "var(--red-color)";
+    if (score >= greenThreshold) return "var(--green-color)";
+    if (score >= blueThreshold) return "var(--blue-color)";
+    return "#ffffff";
   };
 
   // Toggle view
@@ -225,7 +241,7 @@ function HiveMap() {
         })}
       </div>
     ));
-  }, [rows, cols, predictions, cellToLocation, maxHoney]);
+  }, [rows, cols, predictions, cellToLocation, maxHoney, greenThreshold, blueThreshold]);
 
   return (
     <div className="hivemap-page">
