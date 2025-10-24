@@ -112,3 +112,9 @@ textpython run.py
 
 
 The backend should now be running locally, accessible at http://localhost:5000 with debug mode enabled.
+
+python -m venv venv
+
+source venv/bin/activate
+
+python run.py

@@ -1,31 +1,40 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
-import mapImage from "../assets/images/map.png"; // Ensure this image exists
+import mapImage from "../assets/images/map.png";
 import "./HiveMap.css";
 
 function HiveMap() {
-  const [hives, setHives] = useState([]);
-  const [potentialLocations, setPotentialLocations] = useState([]);
-  const [selectedCell, setSelectedCell] = useState(null);
-  const [predictions, setPredictions] = useState({});
-  const [cellToLocation, setCellToLocation] = useState({});
+  const [hives, setHives] = useState<any[]>([]);
+  const [potentialLocations, setPotentialLocations] = useState<any[]>([]);
+  const [selectedCell, setSelectedCell] = useState<string | null>(null);
+  const [predictions, setPredictions] = useState<Record<string, number | null>>({});
+  const [cellToLocation, setCellToLocation] = useState<Record<string, any>>({});
   const [maxHoney, setMaxHoney] = useState(1);
-  const [rows, setRows] = useState(0); // Initialize to 0 for empty state
+  const [rows, setRows] = useState(0);
   const [cols, setCols] = useState(0);
-  const [viewMode, setViewMode] = useState("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+
+  // UI state
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [loadStep, setLoadStep] = useState<"grid" | "predict" | "done" | "">("");
+  const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   const API_BASE = "http://127.0.0.1:5000/api";
 
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // === DATA FETCHING ===
   const fetchHives = async () => {
     try {
       const res = await axios.get(`${API_BASE}/hives`);
       setHives(Array.isArray(res.data) ? res.data : []);
-    } catch (error) {
-      console.error("Error fetching hives:", error);
-      setError("Failed to fetch hives.");
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -33,169 +42,203 @@ function HiveMap() {
     try {
       setLoading(true);
       const res = await axios.get(`${API_BASE}/potential-locations`);
-      const locations = Array.isArray(res.data) ? res.data : [];
-      setPotentialLocations(locations);
-      processLocations(locations);
-      setError(null);
-    } catch (error) {
-      console.error("Error fetching potential locations:", error);
-      setError("Failed to fetch potential locations.");
+      const locs = Array.isArray(res.data) ? res.data : [];
+      setPotentialLocations(locs);
+      processLocations(locs);
+    } catch (err) {
+      setError("Failed to load locations.");
     } finally {
       setLoading(false);
     }
   };
 
-  const processLocations = (locations) => {
-    if (locations.length === 0) {
-      setRows(0);
-      setCols(0);
-      return;
+  const processLocations = (locs: any[]) => {
+    if (!locs.length) {
+      setRows(0); setCols(0); return;
     }
 
-    const uniqueLats = [...new Set(locations.map((l) => l.lat))].sort((a, b) => b - a);
-    const uniqueLngs = [...new Set(locations.map((l) => l.lng))].sort((a, b) => a - b);
+    const lats = [...new Set(locs.map(l => l.lat))].sort((a, b) => b - a);
+    const lngs = [...new Set(locs.map(l => l.lng))].sort((a, b) => a - b);
 
-    const newPredictions = {};
-    const newCellToLocation = {};
-    locations.forEach((l) => {
-      const row = uniqueLats.indexOf(l.lat);
-      const col = uniqueLngs.indexOf(l.lng);
-      const cellId = `${row}-${col}`;
-      newPredictions[cellId] = l.honey_production;
-      newCellToLocation[cellId] = l;
+    const preds: Record<string, number | null> = {};
+    const map: Record<string, any> = {};
+
+    locs.forEach(l => {
+      const row = lats.indexOf(l.lat);
+      const col = lngs.indexOf(l.lng);
+      const id = `${row}-${col}`;
+      preds[id] = l.honey_production;
+      map[id] = l;
     });
 
-    setPredictions(newPredictions);
-    setCellToLocation(newCellToLocation);
-    setRows(uniqueLats.length);
-    setCols(uniqueLngs.length);
+    setPredictions(preds);
+    setCellToLocation(map);
+    setRows(lats.length);
+    setCols(lngs.length);
 
-    const honeyValues = Object.values(newPredictions).filter(
-      (v) => v !== null && v !== undefined
-    );
-    setMaxHoney(honeyValues.length > 0 ? Math.max(...honeyValues) : 1);
+    const values = Object.values(preds).filter(v => v != null) as number[];
+    setMaxHoney(values.length ? Math.max(...values) : 1);
   };
 
+  // === LOAD OPTIMAL LOCATIONS (with animation) ===
   const generateGrid = async () => {
-    try {
-      setLoading(true);
-      await axios.get(`${API_BASE}/potential-locations/generate-grid`);
-      console.log("Grid generated successfully");
-      setError(null);
-    } catch (error) {
-      console.error("Error generating grid:", error);
-      setError("Failed to generate grid.");
-    } finally {
-      setLoading(false);
-    }
+    setLoadStep("grid");
+    await axios.get(`${API_BASE}/potential-locations/generate-grid`);
   };
 
   const predictAll = async () => {
-    try {
-      setLoading(true);
-      await axios.get(`${API_BASE}/ml/predict-all`);
-      console.log("Predictions updated successfully");
-      setError(null);
-    } catch (error) {
-      console.error("Error running predictions:", error);
-      setError("Failed to run predictions.");
-    } finally {
-      setLoading(false);
-    }
+    setLoadStep("predict");
+    await axios.get(`${API_BASE}/ml/predict-all`);
   };
 
   const loadOptimalLocations = async () => {
+    setLoading(true);
+    setError(null);
+    setLoadStep("grid");
+
     try {
-      setLoading(true);
       await generateGrid();
       await predictAll();
       await fetchPotentialLocations();
-    } catch (error) {
-      console.error("Error loading optimal locations:", error);
-      setError("Failed to load optimal locations.");
+      setLoadStep("done");
+      setTimeout(() => setLoadStep(""), 1500);
+      showToast("Predictions loaded!");
+    } catch (err: any) {
+      setError(err.message || "Failed.");
+      setLoadStep("");
     } finally {
       setLoading(false);
     }
   };
 
+  // === CLEAR ALL PREDICTIONS ===
+  const clearAllPredictions = async () => {
+    if (!window.confirm("Delete ALL predicted honey values? This cannot be undone.")) return;
+
+    try {
+      setLoading(true);
+      const res = await axios.delete(`${API_BASE}/potential-locations/clear-all-predictions`);
+      const cleared = res.data.cleared_count || 0;
+
+      // Update UI
+      const newPreds = { ...predictions };
+      const newMap = { ...cellToLocation };
+      Object.keys(newPreds).forEach(id => {
+        newPreds[id] = null;
+        if (newMap[id]) newMap[id].honey_production = null;
+      });
+      setPredictions(newPreds);
+      setCellToLocation(newMap);
+      setMaxHoney(1);
+
+      showToast(`Cleared ${cleared} prediction${cleared !== 1 ? 's' : ''}!`);
+    } catch (err) {
+      alert("Failed to clear predictions.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // === INITIAL LOAD ===
   useEffect(() => {
     fetchHives();
     fetchPotentialLocations();
   }, []);
 
-  const handleCellClick = (row, col) => {
-    const cellId = `${row}-${col}`;
-    if (cellToLocation[cellId]) {
-      setSelectedCell(cellId);
-    }
+  // === GRID INTERACTION ===
+  const handleCellClick = (row: number, col: number) => {
+    const id = `${row}-${col}`;
+    if (cellToLocation[id]) setSelectedCell(id);
   };
 
-  const getCellColor = (cellId) => {
-    const score = predictions[cellId];
-    if (score === undefined || score === null) return "#fff";
-    const normalized = score / maxHoney;
-    if (normalized > 0.7) return "var(--green-color)";
-    if (normalized > 0.4) return "var(--blue-color)";
+  const getCellColor = (id: string) => {
+    const v = predictions[id];
+    if (v == null) return "#fff";
+    const r = v / maxHoney;
+    if (r > 0.7) return "var(--green-color)";
+    if (r > 0.4) return "var(--blue-color)";
     return "var(--red-color)";
   };
 
-  const toggleViewMode = () => {
-    setViewMode(viewMode === "grid" ? "map" : "grid");
-  };
+  const toggleViewMode = () => setViewMode(viewMode === "grid" ? "map" : "grid");
 
-  // Memoize grid to optimize rendering for larger grids
+  // === MEMOIZED GRID ===
   const grid = useMemo(() => {
     if (rows === 0 || cols === 0) {
-      return <p>No location data available.</p>;
+      return <p className="no-data">No location data.</p>;
     }
     return Array.from({ length: rows }).map((_, row) => (
       <div key={row} className="grid-row">
-        {Array.from({ length: cols }).map((_, col) => (
-          <div
-            key={`${row}-${col}`}
-            className="grid-cell"
-            onClick={() => handleCellClick(row, col)}
-            style={{ backgroundColor: getCellColor(`${row}-${col}`) }}
-          ></div>
-        ))}
+        {Array.from({ length: cols }).map((_, col) => {
+          const id = `${row}-${col}`;
+          return (
+            <div
+              key={id}
+              className="grid-cell"
+              onClick={() => handleCellClick(row, col)}
+              style={{ backgroundColor: getCellColor(id) }}
+            />
+          );
+        })}
       </div>
     ));
-  }, [rows, cols, predictions, cellToLocation, maxHoney]);
+  }, [rows, cols, predictions, maxHoney]);
+
+  // === CHECK IF ANY PREDICTION EXISTS ===
+  const hasAnyPrediction = Object.values(predictions).some(v => v != null);
 
   return (
     <div className="hivemap-page">
       <Navbar />
       <div className="hive-map-container">
+
+        {/* === SIDEBAR === */}
         <aside className="sidebar">
           <h2 className="sidebar-title">Hive Locations</h2>
+
           <div className="search-container">
             <input type="text" placeholder="Search hives..." className="search-input" />
           </div>
+
           {error && <p className="error-message">{error}</p>}
-          {loading && <p>Loading...</p>}
+
+          {loading && (
+            <div className="loading-animation">
+              <div className="spinner"></div>
+              <p>
+                {loadStep === "grid" && "Generating grid..."}
+                {loadStep === "predict" && "AI predicting honey..."}
+                {loadStep === "done" && "All set!"}
+              </p>
+            </div>
+          )}
+
           <ul className="hive-list">
-            {hives.map((hive) => (
+            {hives.map(hive => (
               <li key={hive.id} className="hive-list-item">
                 <h3>{hive.name}</h3>
                 <p>Lat: {hive.location_lat}, Lng: {hive.location_lng}</p>
               </li>
             ))}
           </ul>
-          <button
-            onClick={loadOptimalLocations}
-            className="toggle-view-btn"
-            disabled={loading}
-          >
-            {loading ? "Loading..." : "Load Optimal Locations"}
+
+          {/* === ACTION BUTTONS === */}
+          <button onClick={loadOptimalLocations} className="action-btn primary" disabled={loading}>
+            {loading ? "Working..." : "Load Optimal Locations"}
           </button>
-          <button
-            onClick={toggleViewMode}
-            className="toggle-view-btn"
-            disabled={loading}
-          >
-            Switch to {viewMode === "grid" ? "Map" : "Grid"} View
+
+          {hasAnyPrediction && (
+            <button onClick={clearAllPredictions} className="action-btn danger" disabled={loading}>
+              Clear All Predictions
+            </button>
+          )}
+
+          <button onClick={toggleViewMode} className="action-btn secondary" disabled={loading}>
+            Switch to {viewMode === "grid" ? "Map" : "Grid"}
           </button>
         </aside>
+
+        {/* === MAP === */}
         <main className="map-section">
           <div
             className={`grid-container ${viewMode === "map" ? "map-view" : ""}`}
@@ -203,35 +246,54 @@ function HiveMap() {
           >
             {grid}
           </div>
-          {selectedCell && (
-            <div className="popup-overlay">
-              <div className="popup-content">
-                <h3>Details for Cell {selectedCell}</h3>
-                {cellToLocation[selectedCell] ? (
-                  <div className="location-details">
-                    <p><strong>Latitude:</strong> {cellToLocation[selectedCell].lat}</p>
-                    <p><strong>Longitude:</strong> {cellToLocation[selectedCell].lng}</p>
-                    <p><strong>Temperature:</strong> {cellToLocation[selectedCell].temperature} °C</p>
-                    <p><strong>Humidity:</strong> {cellToLocation[selectedCell].humidity} %</p>
-                    <p><strong>Sunlight Exposure:</strong> {cellToLocation[selectedCell].sunlight_exposure} hours/day</p>
-                    <p><strong>Wind Speed:</strong> {cellToLocation[selectedCell].wind_speed} km/h</p>
-                    <p><strong>Dist. to Water Source:</strong> {cellToLocation[selectedCell].dist_to_water_source} km</p>
-                    <p><strong>Dist. to Flowering Area:</strong> {cellToLocation[selectedCell].dist_to_flowering_area} km</p>
-                    <p><strong>Dist. to Feeding Station:</strong> {cellToLocation[selectedCell].dist_to_feeding_station} km</p>
-                    <p>
-                      <strong>Predicted Honey Production:</strong>{" "}
-                      {cellToLocation[selectedCell].honey_production !== null
-                        ? cellToLocation[selectedCell].honey_production.toFixed(2)
-                        : "Not predicted yet"}
-                    </p>
-                  </div>
-                ) : (
-                  <p>No data available for this cell.</p>
-                )}
+
+          {/* Toast */}
+          {toast && <div className="toast">{toast}</div>}
+
+          {/* === POPUP (optional single delete) === */}
+          {selectedCell && cellToLocation[selectedCell] && (
+            <div className="popup-overlay" onClick={() => setSelectedCell(null)}>
+              <div className="popup-content" onClick={e => e.stopPropagation()}>
+                <h3>Location Details</h3>
+                <div className="location-details">
+                  <p><strong>Lat:</strong> {cellToLocation[selectedCell].lat}</p>
+                  <p><strong>Lng:</strong> {cellToLocation[selectedCell].lng}</p>
+                  <p><strong>Temp:</strong> {cellToLocation[selectedCell].temperature} °C</p>
+                  <p><strong>Humidity:</strong> {cellToLocation[selectedCell].humidity}%</p>
+                  <p><strong>Sunlight:</strong> {cellToLocation[selectedCell].sunlight_exposure} h</p>
+                  <p><strong>Wind:</strong> {cellToLocation[selectedCell].wind_speed} km/h</p>
+                  <p><strong>Water:</strong> {cellToLocation[selectedCell].dist_to_water_source.toFixed(2)} km</p>
+                  <p><strong>Flowers:</strong> {cellToLocation[selectedCell].dist_to_flowering_area.toFixed(2)} km</p>
+                  <p><strong>Feed:</strong> {cellToLocation[selectedCell].dist_to_feeding_station.toFixed(2)} km</p>
+
+                  <p className="honey-pred">
+                    <strong>Honey:</strong>{" "}
+                    {cellToLocation[selectedCell].honey_production !== null
+                      ? `${cellToLocation[selectedCell].honey_production.toFixed(2)} kg`
+                      : "Not predicted"}
+                  </p>
+                </div>
+
                 <div className="form-buttons">
-                  <button type="button" onClick={() => setSelectedCell(null)}>
+                  <button onClick={() => setSelectedCell(null)} className="btn-close">
                     Close
                   </button>
+                  {cellToLocation[selectedCell].honey_production !== null && (
+                    <button
+                      onClick={async () => {
+                        const id = cellToLocation[selectedCell].id;
+                        await axios.delete(`${API_BASE}/potential-locations/${id}/honey-production`);
+                        setCellToLocation(p => ({ ...p, [selectedCell]: { ...p[selectedCell], honey_production: null } }));
+                        setPredictions(p => ({ ...p, [selectedCell]: null }));
+                        const vals = Object.values(predictions).filter(v => v != null) as number[];
+                        setMaxHoney(vals.length ? Math.max(...vals) : 1);
+                        showToast("Prediction cleared!");
+                      }}
+                      className="btn-delete"
+                    >
+                      Clear This One
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

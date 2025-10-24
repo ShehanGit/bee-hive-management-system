@@ -124,3 +124,26 @@ def generate_grid():
             inserted_count += 1
 
     return jsonify({"message": f"Inserted {inserted_count} grid cells manually"}), 200
+
+
+# ADD THIS AT THE END OF THE FILE
+@potential_loc_blueprint.route('/potential-locations/clear-all-predictions', methods=['DELETE'])
+def clear_all_predictions():
+    """
+    Set honey_production = NULL for ALL potential locations.
+    Returns count of cleared rows.
+    """
+    from app import db
+    from app.models.potential_location import PotentialLocation
+
+    # Count how many had a prediction
+    cleared_count = db.session.query(PotentialLocation).filter(
+        PotentialLocation.honey_production.isnot(None)
+    ).update({PotentialLocation.honey_production: None}, synchronize_session=False)
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "All predictions cleared",
+        "cleared_count": cleared_count
+    }), 200
