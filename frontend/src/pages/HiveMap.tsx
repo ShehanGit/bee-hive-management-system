@@ -104,6 +104,25 @@ function HiveMap() {
     }
   };
 
+  const clearAllPredictions = async () => {
+    if (!window.confirm("Are you sure you want to delete all predicted honey production values?")) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      await axios.delete(`${API_BASE}/potential-locations/clear-predictions`);
+      console.log("All predictions cleared successfully");
+      await fetchPotentialLocations(); // Refresh the data
+      setError(null);
+    } catch (error) {
+      console.error("Error clearing predictions:", error);
+      setError("Failed to clear predictions.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const loadOptimalLocations = async () => {
     try {
       setLoading(true);
@@ -187,6 +206,13 @@ function HiveMap() {
             disabled={loading}
           >
             {loading ? "Loading..." : "Load Optimal Locations"}
+          </button>
+          <button
+            onClick={clearAllPredictions}
+            className="toggle-view-btn delete-btn"
+            disabled={loading}
+          >
+            {loading ? "Deleting..." : "Delete All Predictions"}
           </button>
           <button
             onClick={toggleViewMode}
