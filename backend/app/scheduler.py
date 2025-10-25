@@ -116,6 +116,7 @@ def start_scheduler(app, socketio):
             except Exception as e:
                 logger.error(f"Error in synchronized collection job: {str(e)}")
 
+
     def scheduled_weather_job():
         """Function to fetch and save weather data (legacy - kept for backward compatibility)"""
         with app.app_context():
@@ -148,6 +149,7 @@ def start_scheduler(app, socketio):
     # scheduler.add_job(scheduled_weather_job, 'interval', minutes=30)
     
     logger.info("Starting scheduler with 1-minute synchronized collection intervals")
+
     
     scheduler.start()
     
