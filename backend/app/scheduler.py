@@ -25,6 +25,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from app.services.iot_integration_service import fetch_and_save_iot_data
 from app.services.weather_service import weather_service
 from app.services.synchronized_monitoring_service import synchronized_monitoring_service
+from app.services.real_time_threat_detection_service import real_time_threat_detection_service
 from app.utils.adafruit_client import get_feed_data
 from datetime import datetime
 
@@ -78,6 +79,36 @@ def start_scheduler(app, socketio):
                         "api_usage": result['api_usage']
                     }
                     socketio.emit("synchronized_update", synchronized_update)
+                    
+                    # Process real-time threat detection
+                    threat_result = real_time_threat_detection_service.process_latest_data(1)
+                    
+                    if threat_result.get('success'):
+                        logger.info(f"Threat detection completed: {threat_result['prediction']['threat_type']}")
+                        
+                        # Emit threat detection update
+                        threat_update = {
+                            "hive_id": threat_result['hive_id'],
+                            "timestamp": threat_result['timestamp'],
+                            "prediction": threat_result['prediction'],
+                            "threat_trend": threat_result['threat_trend'],
+                            "alert_generated": threat_result['alert_generated'],
+                            "alert_data": threat_result['alert_data']
+                        }
+                        socketio.emit("threat_detection_update", threat_update)
+                        
+                        # If alert was generated, emit alert notification
+                        if threat_result['alert_generated'] and threat_result['alert_data']:
+                            alert_notification = {
+                                "type": "threat_alert",
+                                "hive_id": threat_result['hive_id'],
+                                "threat_type": threat_result['prediction']['threat_type'],
+                                "probability": threat_result['prediction']['probability'],
+                                "timestamp": threat_result['timestamp'],
+                                "alert_data": threat_result['alert_data']
+                            }
+                            socketio.emit("threat_alert", alert_notification)
+                            logger.warning(f"🚨 THREAT ALERT EMITTED: {threat_result['prediction']['threat_type']}")
                     
                 else:
                     logger.warning(f"Synchronized data collection failed: {result['errors']}")
