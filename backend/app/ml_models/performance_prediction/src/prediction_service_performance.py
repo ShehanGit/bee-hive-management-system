@@ -10,6 +10,10 @@ import joblib
 import json
 from datetime import datetime
 import warnings
+
+# Suppress pandas warnings for datetime comparisons
+warnings.filterwarnings('ignore', category=FutureWarning)
+warnings.filterwarnings('ignore', message='.*Invalid comparison between dtype=datetime64.*')
 warnings.filterwarnings('ignore')
 
 class HivePerformancePredictor:
@@ -64,6 +68,10 @@ class HivePerformancePredictor:
         
         # Apply feature engineering (simplified version)
         try:
+            # Suppress pandas warnings
+            import warnings
+            warnings.filterwarnings('ignore', category=FutureWarning)
+            
             # Convert timestamp
             if 'collection_timestamp' in data.columns:
                 data['collection_timestamp'] = pd.to_datetime(data['collection_timestamp'])
