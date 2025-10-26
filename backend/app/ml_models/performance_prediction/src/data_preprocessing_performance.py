@@ -6,8 +6,12 @@
 
 import pandas as pd
 import numpy as np
-from datetime import datetime
 import warnings
+from datetime import datetime
+
+# Suppress pandas warnings for datetime comparisons
+warnings.filterwarnings('ignore', category=FutureWarning)
+warnings.filterwarnings('ignore', message='.*Invalid comparison between dtype=datetime64.*')
 warnings.filterwarnings('ignore')
 
 def load_and_explore_data(file_path):
@@ -91,6 +95,10 @@ def create_advanced_features(df):
     
     # 1-hour rolling features (60 minutes = 60 samples at 1-minute intervals)
     window_1h = 60
+    
+    # Suppress pandas warnings for rolling operations
+    import warnings
+    warnings.filterwarnings('ignore', category=FutureWarning)
     
     # Temperature variance (brood nest health indicator)
     data['temp_variance_1h'] = data.groupby('hive_id')['sensor_temperature'].rolling(
