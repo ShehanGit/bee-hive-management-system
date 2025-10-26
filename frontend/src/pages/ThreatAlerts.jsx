@@ -3,9 +3,35 @@ import axios from "axios";
 import Navbar from "../components/Navbar";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar
+  PieChart, Pie, Cell, AreaChart, Area
 } from "recharts";
 import "./ThreatAlerts.css";
+
+// Format timestamp to local time
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return "—";
+  const date = new Date(timestamp);
+  return date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+};
+
+// Format time only
+const formatTime = (timestamp) => {
+  if (!timestamp) return "—";
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+};
 
 // Map threat types to icons
 const getThreatIcon = (type) => {
@@ -54,7 +80,7 @@ function ThreatAlerts() {
   const [forecastData, setForecastData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedAlert, setSelectedAlert] = useState(null);
-  const [activeTab, setActiveTab] = useState("current"); // current, forecast
+  const [activeTab, setActiveTab] = useState("current");
   const [loading, setLoading] = useState(true);
   const alertsPerPage = 10;
 
@@ -64,9 +90,11 @@ function ThreatAlerts() {
       try {
         const res = await axios.get("http://127.0.0.1:5000/api/threat-detection/alerts/recent/24");
         
-        // Process alerts
+        // Process alerts with proper timestamp handling
         const alertsWithRecs = res.data.alerts.map(alert => ({
           ...alert,
+          // Ensure timestamp is a valid date string
+          timestamp: alert.timestamp || new Date().toISOString(),
           recommendations: alert.recommendations?.actions || getRecommendation(alert.threat_type),
           severity: alert.recommendations?.severity || "Medium"
         }));
@@ -80,7 +108,7 @@ function ThreatAlerts() {
     };
 
     fetchAlerts();
-    const interval = setInterval(fetchAlerts, 30000); // Every 30 seconds
+    const interval = setInterval(fetchAlerts, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -93,7 +121,6 @@ function ThreatAlerts() {
     const now = new Date();
     const forecast = [];
     
-    // Calculate baseline from recent alerts
     const recentThreats = alerts.slice(0, 10);
     const avgProbability = recentThreats.length > 0 
       ? recentThreats.reduce((sum, a) => sum + (a.probability || 0.15), 0) / recentThreats.length
@@ -103,29 +130,24 @@ function ThreatAlerts() {
       const time = new Date(now.getTime() + i * 60 * 60 * 1000);
       const hour = time.getHours();
       
-      // Simulate threat probability based on time patterns
       let threatProb = avgProbability;
       
-      // Higher risk during peak heat (12-16h)
       if (hour >= 12 && hour <= 16) {
         threatProb += 0.15 + Math.random() * 0.1;
       }
-      // Night predator risk (0-4h)
       else if (hour >= 0 && hour <= 4) {
         threatProb += 0.08 + Math.random() * 0.07;
       }
-      // Dawn/dusk activity
       else if (hour >= 18 && hour <= 20) {
         threatProb += 0.05 + Math.random() * 0.05;
       }
       
-      // Add some randomness but keep realistic
       threatProb = Math.min(Math.max(threatProb + (Math.random() - 0.5) * 0.08, 0.05), 0.95);
       
       forecast.push({
-        time: time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        time: time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
         hour: time.getHours(),
-        hourLabel: time.toLocaleTimeString('en-US', { hour: '2-digit' }),
+        hourLabel: time.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
         threatProbability: parseFloat((threatProb * 100).toFixed(1)),
         confidenceUpper: parseFloat(Math.min((threatProb + 0.15) * 100, 100).toFixed(1)),
         confidenceLower: parseFloat(Math.max((threatProb - 0.15) * 100, 0).toFixed(1)),
@@ -138,20 +160,17 @@ function ThreatAlerts() {
     setForecastData(forecast);
   };
 
-  // Get upcoming high-risk periods
   const getUpcomingRisks = () => {
     return forecastData
       .filter(d => d.threatProbability > 50)
       .slice(0, 4);
   };
 
-  // Pagination
   const indexOfLast = currentPage * alertsPerPage;
   const indexOfFirst = indexOfLast - alertsPerPage;
   const currentAlerts = alerts.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(alerts.length / alertsPerPage);
 
-  // Chart Data
   const pieData = alerts.reduce((acc, alert) => {
     const existing = acc.find(a => a.name === alert.threat_type);
     if (existing) existing.value++;
@@ -161,7 +180,6 @@ function ThreatAlerts() {
 
   const COLORS = ["#0088FE", "#FF8042", "#00C49F", "#FFBB28", "#8884d8"];
 
-  // Severity colors
   const getSeverityColor = (severity) => {
     const colors = {
       Critical: "#dc2626",
@@ -187,7 +205,6 @@ function ThreatAlerts() {
       <main>
         <h1>🚨 Real-Time Hive Threat Management System</h1>
 
-        {/* Tab Navigation */}
         <div className="tab-navigation">
           <button 
             className={`tab-btn ${activeTab === 'current' ? 'active' : ''}`}
@@ -203,11 +220,9 @@ function ThreatAlerts() {
           </button>
         </div>
 
-        {/* CURRENT THREATS TAB */}
         {activeTab === 'current' && (
           <>
             <div className="charts-container">
-              {/* Pie Chart */}
               <div className="chart-box">
                 <h2>Threat Distribution</h2>
                 <ResponsiveContainer width="100%" height={250}>
@@ -229,7 +244,6 @@ function ThreatAlerts() {
                 </ResponsiveContainer>
               </div>
 
-              {/* Line Chart */}
               <div className="chart-box">
                 <h2>Threat Probability Trend</h2>
                 <ResponsiveContainer width="100%" height={250}>
@@ -237,11 +251,11 @@ function ThreatAlerts() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
                       dataKey="timestamp" 
-                      tickFormatter={(val) => new Date(val).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                      tickFormatter={(val) => formatTime(val)}
                     />
                     <YAxis tickFormatter={(val) => `${(val * 100).toFixed(0)}%`} />
                     <Tooltip 
-                      labelFormatter={(val) => new Date(val).toLocaleString()}
+                      labelFormatter={(val) => formatTimestamp(val)}
                       formatter={(val) => `${(val * 100).toFixed(1)}%`}
                     />
                     <Legend />
@@ -258,7 +272,6 @@ function ThreatAlerts() {
               </div>
             </div>
 
-            {/* Statistics Cards */}
             <div className="stats-cards">
               <div className="stat-card red">
                 <h3>{alerts.filter(a => a.severity === 'High' || a.severity === 'Critical').length}</h3>
@@ -278,7 +291,6 @@ function ThreatAlerts() {
               </div>
             </div>
 
-            {/* Alerts Table */}
             <div className="alerts-table">
               <h2>📋 Recent Alerts</h2>
               <div className="table-container">
@@ -296,11 +308,7 @@ function ThreatAlerts() {
                     {currentAlerts.length > 0 ? (
                       currentAlerts.map((alert, idx) => (
                         <tr key={idx}>
-                          <td>
-                            {alert.timestamp
-                              ? new Date(alert.timestamp).toLocaleString()
-                              : "—"}
-                          </td>
+                          <td>{formatTimestamp(alert.timestamp)}</td>
                           <td>
                             <span className="threat-icon">
                               {getThreatIcon(alert.threat_type)}
@@ -338,7 +346,6 @@ function ThreatAlerts() {
                 </table>
               </div>
 
-              {/* Pagination */}
               <div className="pagination">
                 <button
                   disabled={currentPage === 1}
@@ -360,10 +367,8 @@ function ThreatAlerts() {
           </>
         )}
 
-        {/* FORECAST TAB */}
         {activeTab === 'forecast' && (
           <>
-            {/* Upcoming Risks Alert */}
             {getUpcomingRisks().length > 0 && (
               <div className="forecast-alert-banner">
                 <div className="alert-icon">⚠️</div>
@@ -374,7 +379,6 @@ function ThreatAlerts() {
               </div>
             )}
 
-            {/* Upcoming Risk Cards */}
             {getUpcomingRisks().length > 0 && (
               <div className="risk-cards-container">
                 <h2>🔔 Upcoming High-Risk Periods</h2>
@@ -403,7 +407,6 @@ function ThreatAlerts() {
               </div>
             )}
 
-            {/* Main Forecast Chart */}
             <div className="forecast-chart-container">
               <h2>📈 24-Hour Threat Probability Forecast</h2>
               <ResponsiveContainer width="100%" height={400}>
@@ -463,7 +466,6 @@ function ThreatAlerts() {
               </ResponsiveContainer>
             </div>
 
-            {/* Environmental Forecasts */}
             <div className="charts-container">
               <div className="chart-box">
                 <h2>🌡️ Temperature Forecast</h2>
@@ -506,7 +508,6 @@ function ThreatAlerts() {
               </div>
             </div>
 
-            {/* Risk Timeline */}
             <div className="risk-timeline-container">
               <h2>🕐 Hourly Risk Level Timeline</h2>
               <div className="risk-timeline">
@@ -542,7 +543,6 @@ function ThreatAlerts() {
               </div>
             </div>
 
-            {/* Forecast Info */}
             <div className="forecast-info">
               <div className="info-icon">ℹ️</div>
               <div className="info-content">
@@ -557,7 +557,6 @@ function ThreatAlerts() {
           </>
         )}
 
-        {/* Recommendation Modal */}
         {selectedAlert && (
           <div className="modal-overlay" onClick={() => setSelectedAlert(null)}>
             <div className="modal-card" onClick={(e) => e.stopPropagation()}>
@@ -577,7 +576,7 @@ function ThreatAlerts() {
                 </div>
                 <div className="detail-row">
                   <strong>Detected:</strong>
-                  <span>{new Date(selectedAlert.timestamp).toLocaleString()}</span>
+                  <span>{formatTimestamp(selectedAlert.timestamp)}</span>
                 </div>
               </div>
 
