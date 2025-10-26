@@ -13,7 +13,6 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: 280px;
 }
 
 /* Ensure the dashboard content takes remaining space after navbar */
@@ -39,18 +38,18 @@
 /* Responsive adjustments */
 @media (max-width: 1024px) {
   .dashboard-content {
-    margin-left: 260px;
+    margin-left: 0;
   }
 }
 
 @media (max-width: 768px) {
   .dashboard-content {
-    margin-left: 240px;
+    margin-left: 0;
   }
 }
 
 @media (max-width: 480px) {
   .dashboard-content {
-    margin-left: 200px;
+    margin-left: 0;
   }
 }
