@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from app.services.potential_location_service import (
     get_all_potential_locations, get_potential_location_by_id,
-    create_potential_location, update_potential_location, delete_potential_location
+    create_potential_location, update_potential_location, 
+    delete_potential_location, clear_all_predictions
 )
 from math import radians, cos, sin, asin, sqrt
 
@@ -79,6 +80,17 @@ def delete_single_potential_location(loc_id):
     if not loc:
         return jsonify({"error": "Potential location not found"}), 404
     return jsonify({"message": "Potential location deleted"}), 200
+
+@potential_loc_blueprint.route('/potential-locations/clear-predictions', methods=['DELETE'])
+def clear_predictions():
+    """Clear all honey production predictions."""
+    try:
+        count = clear_all_predictions()
+        if count == 0:
+            return jsonify({"message": "No predictions to clear"}), 200
+        return jsonify({"message": f"Cleared predictions for {count} locations"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @potential_loc_blueprint.route('/potential-locations/generate-grid', methods=['GET'])
 def generate_grid():

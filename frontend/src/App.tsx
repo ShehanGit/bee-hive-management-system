@@ -7,6 +7,7 @@ import NewHivePlacement from './pages/HiveMap';
 import ThreatDetection from "./pages/ThreatDetection.jsx";
 import ThreatAlerts from "./pages/ThreatAlerts";
 import Dashboard from './pages/Dashboard';
+import HealthIdentification from './pages/HealthIdentification.js';
 
 // Landing pages
 import LandingHomepage from './pages/landing/Homepage';
@@ -32,6 +33,7 @@ function App() {
       <Route path="/landing/about" element={<LandingAbout />} />
       <Route path="/landing/pricing" element={<LandingPricing />} />
       <Route path="/landing/contact" element={<LandingContact />} />
+      <Route path="/health" element={<HealthIdentification />} />
     </Routes>
   );
 }
