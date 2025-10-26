@@ -88,5 +88,10 @@ def create_app():
         from app.scheduler import start_scheduler
         # Pass the socketio instance to the scheduler for real-time updates
         start_scheduler(app, socketio)
+    
+    # ========== 🆕 REGISTER THREAT DETECTION ROUTES ==========
+    from app.routes.threat_detection_routes import register_threat_routes
+    register_threat_routes(app)
+    # =========================================================
 
     return app
