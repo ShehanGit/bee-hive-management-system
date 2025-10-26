@@ -47,3 +47,13 @@ def delete_potential_location(loc_id):
     db.session.delete(loc)
     db.session.commit()
     return loc
+
+def clear_all_predictions():
+    """Clear all honey production predictions (set to None)."""
+    try:
+        count = PotentialLocation.query.update({PotentialLocation.honey_production: None})
+        db.session.commit()
+        return count
+    except Exception as e:
+        db.session.rollback()
+        raise e
