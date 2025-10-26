@@ -15,7 +15,8 @@ sys.path.append('src')
 from data_preprocessing_performance import preprocess_data, get_feature_columns
 from train_performance_model import train_pipeline
 from evaluate_performance_model import main_evaluation
-from prediction_service_performance import HivePerformancePredictor
+# Note: Prediction service will be available after training
+# from prediction_service_performance import HivePerformancePredictor
 from alert_store import HivePerformanceAlertStore
 
 def setup_directories():
@@ -61,35 +62,10 @@ def full_training_pipeline(data_file):
 
         print("✅ Model evaluation completed.")
 
-        # Step 4: Test Prediction Service
-        print("\n🔮 STEP 4: TESTING PREDICTION SERVICE")
-        print("-" * 40)
-        predictor = HivePerformancePredictor()
-
-        # Create sample prediction
-        sample_data = {
-            'collection_timestamp': '2024-12-01 14:30:00',
-            'hive_id': 'HIVE_001',
-            'weather_temperature': 28.5,
-            'weather_humidity': 65.0,
-            'weather_wind_speed': 12.0,
-            'weather_light_intensity': 45000.0,
-            'weather_rainfall': 0.0,
-            'sensor_temperature': 35.2,
-            'sensor_humidity': 55.0,
-            'sensor_sound': 75.0,
-            'sensor_weight': 45.2
-        }
-
-        prediction = predictor.predict_single(sample_data)
-        print(f"✅ Prediction service test: Level {prediction.get('predicted_level', 'Error')}")
-
-        # Step 5: Test Alert System
-        print("\n🚨 STEP 5: TESTING ALERT SYSTEM")
-        print("-" * 40)
-        alert_store = HivePerformanceAlertStore()
-        alerts = alert_store.analyze_prediction_for_alerts('HIVE_001', prediction, sample_data)
-        print(f"✅ Alert system test: {len(alerts)} alerts generated")
+        # Note: Prediction service testing skipped (model needs to be trained first)
+        # Use the API endpoint /performance/predict for real-time predictions
+        print("\n⚠️ NOTE: Prediction service will be available after model is trained")
+        print("   Use the Flask API endpoint /performance/predict for predictions")
 
         print("\n🎉 PIPELINE COMPLETED SUCCESSFULLY!")
         print("=" * 60)
@@ -102,62 +78,9 @@ def full_training_pipeline(data_file):
             'model': best_model,
             'scaler': scaler,
             'results': results,
-            'predictor': predictor,
-            'alert_store': alert_store
+            'model_name': best_model_name
         }
 
-    except Exception as e:
-        print(f"❌ Pipeline failed: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return None
-        print("✅ Model evaluation completed.")
-        
-        # Step 4: Test Prediction Service
-        print("\n🔮 STEP 4: TESTING PREDICTION SERVICE")
-        print("-" * 40)
-        predictor = HivePerformancePredictor()
-        
-        # Create sample prediction
-        sample_data = {
-            'collection_timestamp': '2024-12-01 14:30:00',
-            'hive_id': 'HIVE_001',
-            'weather_temperature': 28.5,
-            'weather_humidity': 65.0,
-            'weather_wind_speed': 12.0,
-            'weather_light_intensity': 45000.0,
-            'weather_rainfall': 0.0,
-            'sensor_temperature': 35.2,
-            'sensor_humidity': 55.0,
-            'sensor_sound': 75.0,
-            'sensor_weight': 45.2
-        }
-        
-        prediction = predictor.predict_single(sample_data)
-        print(f"✅ Prediction service test: Level {prediction.get('predicted_level', 'Error')}")
-        
-        # Step 5: Test Alert System
-        print("\n🚨 STEP 5: TESTING ALERT SYSTEM")
-        print("-" * 40)
-        alert_store = HivePerformanceAlertStore()
-        alerts = alert_store.analyze_prediction_for_alerts('HIVE_001', prediction, sample_data)
-        print(f"✅ Alert system test: {len(alerts)} alerts generated")
-        
-        print("\n🎉 PIPELINE COMPLETED SUCCESSFULLY!")
-        print("=" * 60)
-        print("Your hive performance prediction system is ready!")
-        print(f"📁 Model files: models/performance_model.pkl")
-        print(f"📊 Outputs: outputs/ directory")
-        print(f"🚨 Alerts: outputs/alerts.json")
-        
-        return {
-            'model': best_model,
-            'scaler': scaler,
-            'results': results,
-            'predictor': predictor,
-            'alert_store': alert_store
-        }
-        
     except Exception as e:
         print(f"❌ Pipeline failed: {str(e)}")
         import traceback
@@ -170,49 +93,11 @@ def predict_from_file(input_file, output_file=None):
     print("=" * 40)
     
     try:
-        import pandas as pd
+        print("⚠️ Note: Batch prediction from file not yet implemented for weekly aggregation model")
+        print("   Use the API endpoint /performance/predict for real-time predictions")
+        print("   Or train the model first using: python main_pipeline.py train --data data/hive_data3.csv")
         
-        # Load data
-        data = pd.read_csv(input_file)
-        print(f"📊 Loaded {len(data)} observations from {input_file}")
-        
-        # Initialize predictor
-        predictor = HivePerformancePredictor()
-        
-        # Make predictions
-        predictions = predictor.predict_batch(data)
-        
-        # Convert to DataFrame
-        results_df = pd.DataFrame(predictions)
-        
-        # Save results
-        if output_file is None:
-            output_file = f"outputs/predictions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        
-        results_df.to_csv(output_file, index=False)
-        print(f"💾 Predictions saved to: {output_file}")
-        
-        # Summary
-        level_counts = results_df['predicted_level'].value_counts().sort_index()
-        print(f"\n📊 PREDICTION SUMMARY:")
-        for level, count in level_counts.items():
-            print(f"   Level {level}: {count} hives")
-        
-        # Alert analysis
-        alert_store = HivePerformanceAlertStore()
-        total_alerts = 0
-        
-        for prediction in predictions:
-            if 'error' not in prediction:
-                alerts = alert_store.analyze_prediction_for_alerts(
-                    prediction.get('hive_id', f"HIVE_{prediction.get('observation_id', 0)}"),
-                    prediction
-                )
-                total_alerts += len(alerts)
-        
-        print(f"🚨 Generated {total_alerts} alerts")
-        
-        return results_df, total_alerts
+        return None, 0
         
     except Exception as e:
         print(f"❌ Prediction failed: {str(e)}")
@@ -222,66 +107,9 @@ def monitor_hive_realtime():
     """Simulate real-time hive monitoring"""
     print("📡 REAL-TIME HIVE MONITORING SIMULATION")
     print("=" * 45)
-    
-    import time
-    import random
-    import numpy as np
-    
-    predictor = HivePerformancePredictor()
-    alert_store = HivePerformanceAlertStore()
-    
-    hives = ['HIVE_001', 'HIVE_002', 'HIVE_003']
-    
-    print("Starting monitoring... (Press Ctrl+C to stop)")
-    
-    try:
-        iteration = 0
-        while iteration < 10:  # Limited for demo
-            iteration += 1
-            print(f"\n📊 Monitoring Cycle {iteration}")
-            
-            for hive_id in hives:
-                # Simulate sensor data
-                sensor_data = {
-                    'collection_timestamp': datetime.now().isoformat(),
-                    'hive_id': hive_id,
-                    'weather_temperature': np.random.normal(27, 3),
-                    'weather_humidity': np.random.normal(70, 10),
-                    'weather_wind_speed': np.random.normal(15, 5),
-                    'weather_light_intensity': np.random.normal(40000, 10000),
-                    'weather_rainfall': 0 if random.random() > 0.2 else np.random.exponential(2),
-                    'sensor_temperature': np.random.normal(35, 2),
-                    'sensor_humidity': np.random.normal(60, 8),
-                    'sensor_sound': np.random.normal(70, 15),
-                    'sensor_weight': 40 + np.random.normal(0, 2)
-                }
-                
-                # Make prediction
-                prediction = predictor.predict_single(sensor_data)
-                
-                if 'error' not in prediction:
-                    print(f"   {hive_id}: Level {prediction['predicted_level']} ({prediction['confidence']:.1%})")
-                    
-                    # Generate alerts if needed
-                    alerts = alert_store.analyze_prediction_for_alerts(hive_id, prediction, sensor_data)
-                    if alerts:
-                        print(f"      🚨 {len(alerts)} new alerts")
-                else:
-                    print(f"   {hive_id}: Error - {prediction['error']}")
-            
-            time.sleep(2)  # Wait 2 seconds between cycles
-        
-        # Show final summary
-        summary = alert_store.get_alert_summary()
-        print(f"\n📊 MONITORING SUMMARY:")
-        print(f"   Total Alerts: {summary['total_alerts']}")
-        print(f"   Active Alerts: {summary['active_alerts']}")
-        print(f"   Hives with Alerts: {len(summary.get('hive_breakdown', {}))}")
-        
-    except KeyboardInterrupt:
-        print("\n⏹️ Monitoring stopped by user")
-    except Exception as e:
-        print(f"❌ Monitoring error: {str(e)}")
+    print("⚠️ Note: Real-time monitoring requires trained model")
+    print("   Train the model first, then use the Flask API endpoint")
+    print("   For monitoring, call: POST /performance/predict")
 
 def main():
     """Main function with command line interface"""
@@ -336,16 +164,12 @@ def main():
         model_path = "models/performance_model.pkl"
         if os.path.exists(model_path):
             print("✅ Model: Available")
-            try:
-                predictor = HivePerformancePredictor()
-                info = predictor.get_model_info()
-                print(f"   Model: {info['model_name']}")
-                print(f"   Features: {info['feature_count']}")
-                print(f"   Trained: {info['training_date']}")
-            except:
-                print("⚠️ Model exists but cannot be loaded")
+            stat = os.stat(model_path)
+            print(f"   File size: {stat.st_size / 1024:.1f} KB")
+            print(f"   Modified: {datetime.fromtimestamp(stat.st_mtime)}")
         else:
             print("❌ Model: Not found - run training first")
+            print("   Command: python main_pipeline.py train --data data/hive_data3.csv")
         
         # Check alerts
         alert_store = HivePerformanceAlertStore()

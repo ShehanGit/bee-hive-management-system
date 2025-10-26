@@ -248,7 +248,7 @@ function HiveMap() {
       <Navbar />
       <div className="hive-map-container">
         <aside className="sidebar">
-          <h2 className="sidebar-title">Hive Locations</h2>
+          
           <div className="search-container">
             <input type="text" placeholder="Search hives..." className="search-input" />
           </div>
@@ -278,26 +278,13 @@ function HiveMap() {
               {loading ? "Clearing..." : "Clear Predictions"}
             </button>
 
-            <button onClick={deleteAllLocations} className="toggle-view-btn delete-btn" disabled={loading}>
-              {loading ? "Deleting..." : "Delete All Locations"}
-            </button>
+           
 
             <button onClick={toggleViewMode} className="toggle-view-btn" disabled={loading}>
               Switch to {viewMode === "grid" ? "Map" : "Grid"} View
             </button>
 
-            {/* DEBUG BUTTON */}
-            <button
-              onClick={() => {
-                console.log("Raw Locations:", potentialLocations);
-                console.log("Predictions Map:", predictions);
-                console.log("Max Honey:", maxHoney);
-              }}
-              className="toggle-view-btn"
-              style={{ background: "#666", fontSize: "0.8rem" }}
-            >
-              Debug Console
-            </button>
+            
           </div>
         </aside>
 

@@ -133,7 +133,7 @@ def generate_classification_report(results, y_test, best_model_name):
     print("=" * 60)
     
     target_names = ['Excellent', 'Good', 'Moderate', 'Poor', 'Critical']
-    unique_levels = sorted(y_test.unique())
+    unique_levels = sorted(np.unique(y_test))
     
     # Adjust target names based on available levels
     if len(unique_levels) < len(target_names):
