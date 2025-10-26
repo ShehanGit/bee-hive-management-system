@@ -46,7 +46,8 @@ function Navbar() {
         </li>
 
         <li>
-        <Link to="/alerts">Threat Alerts</Link>
+
+          <Link to="/alerts">Threat Alerts</Link>
         </li>
 
 
