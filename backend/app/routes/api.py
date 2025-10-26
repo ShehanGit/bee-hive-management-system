@@ -24,6 +24,7 @@ from app.controllers.synchronized_monitoring_controller import synchronized_moni
 from app.controllers.hive_management_controller import hive_management_blueprint
 from app.controllers.performance_controller import performance_blueprint
 from app.controllers.historical_performance_controller import historical_performance_blueprint
+from app.controllers.threat_detection_controller import threat_detection_bp
 
 api_bp = Blueprint('api_bp', __name__)
 
@@ -45,6 +46,7 @@ api_bp.register_blueprint(synchronized_monitoring_blueprint, url_prefix='/')
 api_bp.register_blueprint(hive_management_blueprint, url_prefix='/')
 api_bp.register_blueprint(performance_blueprint, url_prefix='/')
 api_bp.register_blueprint(historical_performance_blueprint, url_prefix='/')
+api_bp.register_blueprint(threat_detection_bp, url_prefix='/')
 
 
 
