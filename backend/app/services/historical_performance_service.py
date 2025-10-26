@@ -1,48 +1,52 @@
 from app.models.synchronized_data import SynchronizedData
-from app.ml_models.performance_prediction.src.prediction_service_performance import HivePerformancePredictor
-import os
-import pandas as pd
+from app.services.performance_prediction_service import predict_latest_performance
+import logging
 
-MODEL_DIR = os.path.join(os.path.dirname(__file__), '..', 'ml_models', 'performance_prediction', 'models')
-MODEL_PATH = os.path.join(MODEL_DIR, 'performance_model.pkl')
-SCALER_PATH = os.path.join(MODEL_DIR, 'scaler.pkl')
-META_PATH = os.path.join(MODEL_DIR, 'performance_model_meta.json')
-
-predictor = HivePerformancePredictor(
-    model_path=MODEL_PATH,
-    scaler_path=SCALER_PATH,
-    metadata_path=META_PATH
-)
+logger = logging.getLogger(__name__)
 
 def get_historical_performance(hive_id=1, hours=24):
-    # Get historical synchronized data
-    historical = SynchronizedData.get_historical_data(hive_id, hours)
-    if not historical:
-        return {'success': False, 'error': 'No historical data found'}
-
-    # Prepare DataFrame for batch prediction
-    data_rows = []
-    timestamps = []
-    for entry in historical:
-        data_rows.append({
-            'collection_timestamp': entry.collection_timestamp,
-            'sensor_temperature': entry.sensor_temperature,
-            'sensor_humidity': entry.sensor_humidity,
-            'sensor_sound': entry.sensor_sound,
-            'sensor_weight': entry.sensor_weight,
-            'weather_temperature': entry.weather_temperature,
-            'weather_humidity': entry.weather_humidity,
-            'weather_wind_speed': entry.weather_wind_speed,
-            'weather_light_intensity': entry.weather_light_intensity,
-            'weather_rainfall': entry.weather_rainfall
-        })
-        timestamps.append(entry.collection_timestamp)
-    df = pd.DataFrame(data_rows)
+    """
+    Get historical performance predictions for a hive.
+    
+    Note: Now uses the weekly aggregation approach - returns current prediction
+    based on available historical data.
+    """
     try:
-        preds = predictor.predict_batch(df)
-        # Attach timestamps to predictions
-        for i, pred in enumerate(preds):
-            pred['collection_timestamp'] = timestamps[i].isoformat() if timestamps[i] else None
-        return {'success': True, 'history': preds}
+        from datetime import datetime, timedelta
+        
+        # Get historical synchronized data
+        since_time = datetime.now() - timedelta(hours=hours)
+        
+        historical = SynchronizedData.query.filter(
+            SynchronizedData.hive_id == hive_id,
+            SynchronizedData.collection_timestamp >= since_time
+        ).order_by(SynchronizedData.collection_timestamp.asc()).all()
+        
+        if not historical:
+            return {'success': False, 'error': 'No historical data found'}
+        
+        # Use the main prediction service which handles aggregation correctly
+        result = predict_latest_performance(hive_id)
+        
+        if result.get('success') and result.get('prediction'):
+            prediction = result['prediction']
+            
+            # Return in expected format
+            return {
+                'success': True,
+                'history': [{
+                    'predicted_level': prediction.get('predicted_level'),
+                    'interpretation': prediction.get('interpretation'),
+                    'confidence': prediction.get('confidence'),
+                    'risk_assessment': prediction.get('risk_assessment'),
+                    'collection_timestamp': prediction.get('timestamp'),
+                    'data_points_used': prediction.get('data_points_used', len(historical)),
+                    'weight_change_pct': prediction.get('weight_change_pct', 0)
+                }]
+            }
+        else:
+            return {'success': False, 'error': 'Failed to generate prediction'}
+            
     except Exception as e:
+        logger.error(f"Error in get_historical_performance: {str(e)}")
         return {'success': False, 'error': str(e)}

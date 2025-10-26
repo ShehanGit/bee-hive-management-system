@@ -39,7 +39,7 @@ api_bp.register_blueprint(potential_loc_blueprint, url_prefix='/')
 api_bp.register_blueprint(ml_blueprint, url_prefix='/')
 
 
-# Performace Predict blueprint registrations
+# Performance Predict blueprint registrations
 api_bp.register_blueprint(weather_blueprint, url_prefix='/')
 api_bp.register_blueprint(synchronized_data_blueprint, url_prefix='/')
 api_bp.register_blueprint(synchronized_monitoring_blueprint, url_prefix='/')

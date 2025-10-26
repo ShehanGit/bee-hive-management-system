@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -260,6 +260,53 @@ const PerformanceCard = ({ performance }: { performance: any }) => {
     );
 };
 
+// Memoized Header Component - only re-renders when props change
+const DashboardHeader = memo(({ selectedHiveId, setSelectedHiveId, currentTime }: {
+    selectedHiveId: number;
+    setSelectedHiveId: (id: number) => void;
+    currentTime: Date;
+}) => {
+    const formatTime = (date: Date) => {
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    };
+    
+    const formatDate = (date: Date) => {
+        return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    };
+
+    return (
+        <header className="dashboard-header">
+            <div className="header-left">
+                <div className="dashboard-title">
+                    <div className="title-content">
+                        <h1>Real-Time Dashboard</h1>
+                        <p className="title-subtitle">Live Hive Monitoring & Analytics</p>
+                    </div>
+                </div>
+                <div className="hive-selector-modern">
+                    <div className="selector-label">Active Hive</div>
+                    <div className="selector-wrapper">
+                        <select id="hive-select" value={selectedHiveId} onChange={(e) => setSelectedHiveId(parseInt(e.target.value))}>
+                            <option value={1}>Hive #1</option>
+                            <option value={2}>Hive #2</option>
+                            <option value={3}>Hive #3</option>
+                        </select>
+                        <div className="selector-indicator"></div>
+                    </div>
+                </div>
+            </div>
+            <div className="header-right">
+                <div className="datetime-modern">
+                    <div className="time-modern">{formatTime(currentTime)}</div>
+                    <div className="date-modern">{formatDate(currentTime)}</div>
+                </div>
+            </div>
+        </header>
+    );
+});
+
+DashboardHeader.displayName = 'DashboardHeader';
+
 const ModernHiveDashboard = () => {
     const [selectedHiveId, setSelectedHiveId] = useState(1);
     const [selectedTimeRange, setSelectedTimeRange] = useState('24h');
@@ -268,9 +315,10 @@ const ModernHiveDashboard = () => {
     const [historicalData, setHistoricalData] = useState<HiveData[]>([]);
     const [loading, setLoading] = useState(true);
     const [performancePrediction, setPerformancePrediction] = useState<PerformancePrediction | null>(null);
-    const [performanceLoading, setPerformanceLoading] = useState(true);
+    const [performanceLoading, setPerformanceLoading] = useState(false);
     const [historicalPerformance, setHistoricalPerformance] = useState<HistoricalPerformance[]>([]);
-    const [, setHistoricalPerfLoading] = useState(true);
+    const [, setHistoricalPerfLoading] = useState(false);
+    const [isManualPredicting, setIsManualPredicting] = useState(false);
     const [selectedSensor, setSelectedSensor] = useState<'temperature' | 'humidity' | 'weight' | 'sound'>('temperature');
     
     // Advanced Analytics State
@@ -294,40 +342,94 @@ const ModernHiveDashboard = () => {
     }, []);
 
     useEffect(() => {
+        // Show loading only when hive changes or initial load
+        setLoading(true);
+        
         const fetchHiveData = async () => {
             try {
-                setLoading(true);
                 const response = await fetch(`http://127.0.0.1:5000/api/synchronized/latest?hive_id=${selectedHiveId}`);
                 const data = await response.json();
                 setHiveData(data.success && data.data ? data.data : null);
+                setLoading(false);
             } catch (error) {
                 setHiveData(null);
-            } finally {
                 setLoading(false);
             }
         };
+        
+        // Initial fetch
         fetchHiveData();
-        const interval = setInterval(fetchHiveData, 30000);
+        
+        // Periodic background updates (only fetch, no loading state)
+        const interval = setInterval(() => {
+            fetch(`http://127.0.0.1:5000/api/synchronized/latest?hive_id=${selectedHiveId}`)
+                .then(res => res.json())
+                .then(data => {
+                    setHiveData(data.success && data.data ? data.data : null);
+                })
+                .catch(() => {
+                    // Silent fail on background updates
+                });
+        }, 30000);
+        
         return () => clearInterval(interval);
     }, [selectedHiveId]);
 
-    useEffect(() => {
-        const fetchPerformancePrediction = async () => {
+    // Manual performance prediction trigger
+    const triggerManualPrediction = async () => {
+        try {
+            setIsManualPredicting(true);
+            setPerformanceLoading(true);
+            
+            console.log('Triggering prediction for hive:', selectedHiveId);
+            
+            // Create an AbortController for timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout (increased from 60s)
+            
             try {
-                setPerformanceLoading(true);
-                const response = await fetch(`http://127.0.0.1:5000/api/performance/predict?hive_id=${selectedHiveId}`);
+                const response = await fetch(`http://127.0.0.1:5000/api/performance/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ hive_id: selectedHiveId }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error || 'Unknown error'}`);
+                }
+                
                 const data = await response.json();
-                setPerformancePrediction(data.success && data.prediction ? data.prediction : null);
-            } catch (error) {
-                setPerformancePrediction(null);
-            } finally {
-                setPerformanceLoading(false);
+                console.log('Response data:', data);
+                
+                if (data.success && data.prediction) {
+                    console.log('Setting performance prediction:', data.prediction);
+                    setPerformancePrediction(data.prediction);
+                } else {
+                    console.error('Prediction failed:', data);
+                    alert('Failed to predict performance: ' + (data.error || 'Unknown error'));
+                }
+            } catch (fetchError) {
+                if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+                    throw new Error('Request timeout: The prediction is taking too long.');
+                }
+                throw fetchError;
             }
-        };
-        fetchPerformancePrediction();
-        const interval = setInterval(fetchPerformancePrediction, 30000);
-        return () => clearInterval(interval);
-    }, [selectedHiveId]);
+        } catch (error) {
+            console.error('Error triggering performance prediction:', error);
+            alert('Error predicting performance: ' + (error instanceof Error ? error.message : String(error)));
+        } finally {
+            setPerformanceLoading(false);
+            setIsManualPredicting(false);
+        }
+    };
 
     useEffect(() => {
         const fetchHistoricalData = async () => {
@@ -351,6 +453,13 @@ const ModernHiveDashboard = () => {
         const fetchHistoricalPerformance = async () => {
             try {
                 setHistoricalPerfLoading(true);
+                // Only fetch if there's already a prediction
+                if (!performancePrediction) {
+                    setHistoricalPerformance([]);
+                    setHistoricalPerfLoading(false);
+                    return;
+                }
+                
                 // Ensure selectedTimeRange is valid
                 const validTimeRange = ['24h', '1w', '1m'].includes(selectedTimeRange) ? selectedTimeRange : '24h';
                 const hours = validTimeRange === '24h' ? 24 : validTimeRange === '1w' ? 168 : 720;
@@ -366,10 +475,7 @@ const ModernHiveDashboard = () => {
             }
         };
         fetchHistoricalPerformance();
-    }, [selectedHiveId, selectedTimeRange]);
-
-    const formatTime = (date: Date) => date.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const formatDate = (date: Date) => date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }, [selectedHiveId, selectedTimeRange, performancePrediction]);
 
     const getPerformanceStatus = () => {
         if (performanceLoading) return { predicted_level: '-', interpretation: 'Loading...', confidence: '-', risk_assessment: '', all_probabilities: {}, color: 'gray', timestamp: '' };
@@ -381,7 +487,7 @@ const ModernHiveDashboard = () => {
     };
     const performance = getPerformanceStatus();
 
-    const processChartData = () => {
+    const chartData = useMemo(() => {
         if (!historicalData || historicalData.length === 0) return { temperature: { labels: [], datasets: [] }, humidity: { labels: [], datasets: [] }, weight: { labels: [], datasets: [] }, sound: { labels: [], datasets: [] } };
         const sortedData = [...historicalData].sort((a, b) => new Date(a.collection_timestamp).getTime() - new Date(b.collection_timestamp).getTime());
         const labels = sortedData.map(item => new Date(item.collection_timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
@@ -455,11 +561,10 @@ const ModernHiveDashboard = () => {
                 ] 
             }
         };
-    };
-    const chartData = processChartData();
+    }, [historicalData]);
 
-    // Advanced Analytics Data Processing
-    const processAdvancedAnalytics = () => {
+    // Advanced Analytics Data Processing - memoized
+    const advancedAnalytics = useMemo(() => {
         if (!historicalData || historicalData.length === 0) return { labels: [], datasets: [] };
         
         const sortedData = [...historicalData].sort((a, b) => new Date(a.collection_timestamp).getTime() - new Date(b.collection_timestamp).getTime());
@@ -598,9 +703,9 @@ const ModernHiveDashboard = () => {
         }
         
         return { labels, datasets };
-    };
+    }, [historicalData, selectedMetrics, performancePrediction]);
     
-    const advancedChartData = processAdvancedAnalytics();
+    const advancedChartData = advancedAnalytics;
 
     // Advanced Analytics Chart Configuration
     const advancedChartConfig = {
@@ -939,35 +1044,12 @@ const ModernHiveDashboard = () => {
 
     return (
         <div className="modern-dashboard">
-            {/* Header */}
-            <header className="dashboard-header">
-                <div className="header-left">
-                    <div className="dashboard-title">
-                        
-                        <div className="title-content">
-                            <h1>Real-Time Dashboard</h1>
-                            <p className="title-subtitle">Live Hive Monitoring & Analytics</p>
-                        </div>
-                    </div>
-                    <div className="hive-selector-modern">
-                        <div className="selector-label">Active Hive</div>
-                        <div className="selector-wrapper">
-                            <select id="hive-select" value={selectedHiveId} onChange={(e) => setSelectedHiveId(parseInt(e.target.value))}>
-                                <option value={1}>Hive #1</option>
-                                <option value={2}>Hive #2</option>
-                                <option value={3}>Hive #3</option>
-                            </select>
-                            <div className="selector-indicator"></div>
-                        </div>
-                    </div>
-                </div>
-                <div className="header-right">
-                    <div className="datetime-modern">
-                        <div className="time-modern">{formatTime(currentTime)}</div>
-                        <div className="date-modern">{formatDate(currentTime)}</div>
-                    </div>
-                </div>
-            </header>
+            {/* Memoized Header - only re-renders when selectedHiveId or currentTime changes */}
+            <DashboardHeader 
+                selectedHiveId={selectedHiveId} 
+                setSelectedHiveId={setSelectedHiveId} 
+                currentTime={currentTime} 
+            />
 
             {/* Main Dashboard Grid */}
             <div className="dashboard-grid">
@@ -1043,7 +1125,37 @@ const ModernHiveDashboard = () => {
                 {/* Bottom Row - Performance & Weather */}
                 <div className="bottom-row">
                     <div className="performance-section">
-                        <PerformanceCard performance={performance} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                            <PerformanceCard performance={performance} />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <button 
+                                    onClick={triggerManualPrediction} 
+                                    disabled={isManualPredicting || performanceLoading}
+                                    style={{
+                                        padding: '12px 24px',
+                                        fontSize: '16px',
+                                        fontWeight: 'bold',
+                                        backgroundColor: isManualPredicting || performanceLoading ? '#94a3b8' : '#ff6b35',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: isManualPredicting || performanceLoading ? 'not-allowed' : 'pointer',
+                                        transition: 'all 0.3s ease',
+                                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                                        opacity: isManualPredicting || performanceLoading ? 0.6 : 1
+                                    }}
+                                    onMouseEnter={(e) => !isManualPredicting && !performanceLoading && (e.currentTarget.style.backgroundColor = '#e55a26')}
+                                    onMouseLeave={(e) => !isManualPredicting && !performanceLoading && (e.currentTarget.style.backgroundColor = '#ff6b35')}
+                                >
+                                    {isManualPredicting || performanceLoading ? 'Predicting...' : 'Predict Performance'}
+                                </button>
+                                {!performancePrediction && !isManualPredicting && !performanceLoading && (
+                                    <div style={{ fontSize: '12px', color: '#64748b', fontStyle: 'italic' }}>
+                                        Click to get performance prediction
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                         <div className="performance-chart">
                             <h4><FiBarChart className="chart-icon" /> Performance History</h4>
                             <div className="chart-wrapper">
