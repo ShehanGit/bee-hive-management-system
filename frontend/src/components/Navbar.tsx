@@ -38,15 +38,15 @@ function Navbar() {
         </li>
         <li>
 
-          <Link to="/threat-detection" onClick={() => setIsOpen(false)}>Threat Detection</Link>
+        <Link to="/threat-detection" onClick={() => setIsOpen(false)}>Threat Detection</Link>
         </li>
         <li>
 
-          <Link to="/health" onClick={() => setIsOpen(false)}>Health</Link>
+        <Link to="/health" onClick={() => setIsOpen(false)}>Health</Link>
         </li>
 
         <li>
-          <Link to="/alerts">Threat Alerts</Link>
+        <Link to="/alerts">Threat Alerts</Link>
         </li>
 
 

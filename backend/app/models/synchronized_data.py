@@ -25,6 +25,11 @@ class SynchronizedData(db.Model):
     sensor_sound = db.Column(db.Float, nullable=True)         # Sound in dB
     sensor_weight = db.Column(db.Float, nullable=True)        # Weight in kg
     
+    # Threat detection fields (generated from existing data)
+    sensor_sound_peak_freq = db.Column(db.Float, nullable=True)  # Sound peak frequency in Hz
+    sensor_vibration_hz = db.Column(db.Float, nullable=True)     # Vibration frequency in Hz
+    sensor_vibration_var = db.Column(db.Float, nullable=True)     # Vibration variance
+    
     # Metadata
     weather_data_id = db.Column(db.Integer, db.ForeignKey('weather_data.id'), nullable=True)
     sensor_data_count = db.Column(db.Integer, default=0)
@@ -61,6 +66,13 @@ class SynchronizedData(db.Model):
                 'humidity': self.sensor_humidity,
                 'sound': self.sensor_sound,
                 'weight': self.sensor_weight
+            },
+            
+            # Threat detection data (generated fields)
+            'threat_detection': {
+                'sound_peak_freq': self.sensor_sound_peak_freq,
+                'vibration_hz': self.sensor_vibration_hz,
+                'vibration_var': self.sensor_vibration_var
             },
             
             # Metadata
@@ -188,3 +200,99 @@ class SynchronizedData(db.Model):
                 score += 1
         
         return (score / max_score * 100) if max_score > 0 else 0
+    
+    def calculate_threat_detection_fields(self):
+        """
+        Calculate missing threat detection fields from existing data
+        Uses intelligent estimation based on bee behavior patterns
+        """
+        # Sound peak frequency estimation based on activity level
+        self.sensor_sound_peak_freq = self._estimate_sound_peak_frequency()
+        
+        # Vibration frequency estimation based on sound and environment
+        self.sensor_vibration_hz = self._estimate_vibration_frequency()
+        
+        # Vibration variance estimation based on environmental disturbances
+        self.sensor_vibration_var = self._estimate_vibration_variance()
+    
+    def _estimate_sound_peak_frequency(self):
+        """Estimate peak frequency based on sound intensity and bee behavior patterns"""
+        if self.sensor_sound is None:
+            return 200.0  # Default frequency
+        
+        sound_db = self.sensor_sound
+        
+        # Bee sound frequency ranges based on activity level
+        if sound_db < 50:      # Low activity
+            return 150.0 + (sound_db * 0.5)  # 150-175 Hz
+        elif sound_db < 70:    # Normal activity  
+            return 175.0 + ((sound_db - 50) * 1.0)  # 175-195 Hz
+        elif sound_db < 85:    # High activity
+            return 195.0 + ((sound_db - 70) * 0.8)  # 195-207 Hz
+        else:                  # Very high activity (potential threat)
+            return 207.0 + ((sound_db - 85) * 0.5)  # 207-215 Hz
+    
+    def _estimate_vibration_frequency(self):
+        """Estimate vibration frequency based on sound and environmental conditions"""
+        if self.sensor_sound is None:
+            return 200.0  # Default vibration
+        
+        # Base vibration from sound intensity
+        base_vibration = 150.0 + (self.sensor_sound * 0.8)  # 150-218 Hz range
+        
+        # Environmental adjustments
+        temp_factor = 1.0
+        if self.weather_temperature and self.weather_temperature > 35:  # Hot weather increases activity
+            temp_factor = 1.1
+        elif self.weather_temperature and self.weather_temperature < 15:  # Cold weather decreases activity
+            temp_factor = 0.9
+        
+        humidity_factor = 1.0
+        if self.weather_humidity and self.weather_humidity > 80:  # High humidity affects behavior
+            humidity_factor = 0.95
+        
+        estimated_vibration = base_vibration * temp_factor * humidity_factor
+        
+        # Clamp to realistic range
+        return max(100.0, min(300.0, estimated_vibration))
+    
+    def _estimate_vibration_variance(self):
+        """Estimate vibration variance based on sound and environmental disturbances"""
+        if self.sensor_sound is None:
+            return 10.0  # Default variance
+        
+        # Base variance from sound intensity
+        base_variance = 5.0 + (self.sensor_sound * 0.1)  # 5-13.5 range
+        
+        # Environmental disturbance factors
+        wind_factor = 1.0
+        if self.weather_wind_speed and self.weather_wind_speed > 20:  # Strong wind
+            wind_factor = 1.5
+        elif self.weather_wind_speed and self.weather_wind_speed > 10:  # Moderate wind
+            wind_factor = 1.2
+        
+        rain_factor = 1.0
+        if self.weather_rainfall and self.weather_rainfall > 5:  # Heavy rain
+            rain_factor = 1.3
+        elif self.weather_rainfall and self.weather_rainfall > 0:  # Light rain
+            rain_factor = 1.1
+        
+        estimated_variance = base_variance * wind_factor * rain_factor
+        
+        # Clamp to realistic range
+        return max(2.0, min(25.0, estimated_variance))
+    
+    def get_threat_detection_payload(self):
+        """
+        Get threat detection payload format for ML model
+        Returns data in the format expected by threat detection model
+        """
+        return {
+            "weather_temp_c": self.weather_temperature or 30.0,
+            "weather_humidity_pct": self.weather_humidity or 60.0,
+            "hive_sound_db": self.sensor_sound or 70.0,
+            "hive_sound_peak_freq": self.sensor_sound_peak_freq or 200.0,
+            "vibration_hz": self.sensor_vibration_hz or 200.0,
+            "vibration_var": self.sensor_vibration_var or 10.0,
+            "timestamp": self.collection_timestamp.isoformat() if self.collection_timestamp else None
+        }

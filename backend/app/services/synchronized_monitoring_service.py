@@ -183,6 +183,9 @@ class SynchronizedMonitoringService:
                     api_usage_adafruit_calls=results["api_usage"]["adafruit_calls"]
                 )
                 
+                # Calculate threat detection fields from existing data
+                synchronized_record.calculate_threat_detection_fields()
+                
                 db.session.add(synchronized_record)
                 
             except Exception as e:
