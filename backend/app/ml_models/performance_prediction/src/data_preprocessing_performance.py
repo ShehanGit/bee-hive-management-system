@@ -2,14 +2,15 @@
 # 🐝 Hive Performance Data Preprocessing
 # Location: Badulla District, Sri Lanka
 # Research-based ML model for precision apiculture
+# 
+# Fix: Aggregate 1-minute data to weekly summaries for temporal alignment
 # ===============================================================================
 
 import pandas as pd
 import numpy as np
 import warnings
-from datetime import datetime
+from datetime import datetime, timedelta
 
-# Suppress pandas warnings for datetime comparisons
 warnings.filterwarnings('ignore', category=FutureWarning)
 warnings.filterwarnings('ignore', message='.*Invalid comparison between dtype=datetime64.*')
 warnings.filterwarnings('ignore')
@@ -22,32 +23,24 @@ def load_and_explore_data(file_path):
     print(f"Dataset shape: {data.shape}")
     print(f"Columns: {list(data.columns)}")
     print(f"Missing values: {data.isnull().sum().sum()}")
-    print(f"Data types:\n{data.dtypes}")
     
     return data
 
-def create_advanced_features(df):
+def prepare_base_features(df):
     """
-    Create research-based features for Sri Lankan hive monitoring
-    Based on methodology for tropical climate conditions
+    Create base features that will later be aggregated
     """
-    print("\n🔧 CREATING ADVANCED FEATURES...")
+    print("\n🔧 PREPARING BASE FEATURES FOR AGGREGATION...")
     
     data = df.copy()
-    
-    # Convert timestamp and sort
     data['collection_timestamp'] = pd.to_datetime(data['collection_timestamp'])
     data = data.sort_values(['hive_id', 'collection_timestamp']).reset_index(drop=True)
     
-    # ================================
-    # CORE PREDICTIVE FEATURES
-    # ================================
-    
-    # Temperature management (key indicator of colony health)
+    # Temperature management
     data['temp_differential'] = data['sensor_temperature'] - data['weather_temperature']
     data['humidity_differential'] = data['sensor_humidity'] - data['weather_humidity']
     
-    # Sri Lankan tropical foraging conditions
+    # Favorable foraging conditions (binary)
     data['favorable_foraging'] = (
         (data['weather_temperature'] > 15) &
         (data['weather_rainfall'] == 0) &
@@ -55,13 +48,13 @@ def create_advanced_features(df):
         (data['weather_light_intensity'] > 1000)
     ).astype(int)
     
-    # Thermal stress for tropical climate
+    # Thermal stress (binary)
     data['thermal_stress'] = (
         (data['weather_temperature'] > 35) |
         (data['weather_temperature'] < 18)
     ).astype(int)
     
-    # Sound activity normalization
+    # Sound activity (0-1 normalized)
     if data['sensor_sound'].max() != data['sensor_sound'].min():
         sound_min = data['sensor_sound'].min()
         sound_max = data['sensor_sound'].max()
@@ -69,79 +62,162 @@ def create_advanced_features(df):
     else:
         data['sound_activity'] = 0
     
-    # ================================
-    # TEMPORAL FEATURES (Cyclical)
-    # ================================
+    # Temporal features
     data['hour'] = data['collection_timestamp'].dt.hour
-    data['day_of_week'] = data['collection_timestamp'].dt.dayofweek
+    data['day'] = data['collection_timestamp'].dt.day
     data['month'] = data['collection_timestamp'].dt.month
     
-    # Cyclical encoding
-    data['hour_sin'] = np.sin(2 * np.pi * data['hour'] / 24)
-    data['hour_cos'] = np.cos(2 * np.pi * data['hour'] / 24)
-    data['month_sin'] = np.sin(2 * np.pi * data['month'] / 12)
-    data['month_cos'] = np.cos(2 * np.pi * data['month'] / 12)
+    # Day/night classification (important for tropical apiculture)
+    data['is_daytime'] = (data['hour'] >= 6) & (data['hour'] <= 18)
     
-    # Sri Lankan monsoon seasons
-    data['yala_season'] = data['month'].isin([5, 6, 7, 8]).astype(int)  # May-Aug
-    data['maha_season'] = data['month'].isin([10, 11, 12, 1]).astype(int)  # Oct-Jan
+    # Temperature variance (stability indicator)
+    data['temp_variance'] = abs(data['sensor_temperature'] - data['sensor_temperature'].mean())
     
-    # ================================
-    # ROLLING WINDOW FEATURES
-    # ================================
+    return data
+
+def aggregate_to_weekly_data(df):
+    """
+    ✅ KEY FIX: Aggregate 1-minute data to weekly summaries
+    This matches the temporal scale of your labels
+    """
+    print("\n📅 AGGREGATING DATA TO WEEKLY LEVELS...")
     
-    # Sort by hive and time for rolling calculations
-    data = data.sort_values(['hive_id', 'collection_timestamp'])
-    
-    # 1-hour rolling features (60 minutes = 60 samples at 1-minute intervals)
-    window_1h = 60
-    
-    # Suppress pandas warnings for rolling operations
-    import warnings
-    warnings.filterwarnings('ignore', category=FutureWarning)
-    
-    # Temperature variance (brood nest health indicator)
-    data['temp_variance_1h'] = data.groupby('hive_id')['sensor_temperature'].rolling(
-        window=window_1h, min_periods=1
-    ).var().reset_index(0, drop=True)
-    
-    # Sound trend
-    data['sound_trend_1h'] = data.groupby('hive_id')['sensor_sound'].rolling(
-        window=window_1h, min_periods=1
-    ).mean().reset_index(0, drop=True)
-    
-    # Weather stability
-    data['weather_stability_1h'] = data.groupby('hive_id')['weather_temperature'].rolling(
-        window=window_1h, min_periods=1
-    ).std().reset_index(0, drop=True)
-    
-    # Fill NaN values
-    data['temp_variance_1h'] = data['temp_variance_1h'].fillna(0)
-    data['sound_trend_1h'] = data['sound_trend_1h'].fillna(data['sensor_sound'].median())
-    data['weather_stability_1h'] = data['weather_stability_1h'].fillna(0)
-    
-    # ================================
-    # PERFORMANCE LEVEL CALCULATION
-    # ================================
-    
-    # Weekly weight change calculation
+    data = df.copy()
     data['week'] = data['collection_timestamp'].dt.isocalendar().week
     data['year'] = data['collection_timestamp'].dt.year
     
-    def calculate_weekly_performance(group):
-        """Calculate weekly weight change percentage"""
-        if len(group) < 2:
-            return 3  # Default moderate
+    print(f"   Data spans from {data['collection_timestamp'].min()} to {data['collection_timestamp'].max()}")
+    print(f"   Analyzing {data['hive_id'].nunique()} hives across {data['week'].nunique()} weeks")
+    
+    # Initialize weekly data structure
+    weekly_data = []
+    
+    # Process each hive-week combination
+    for (hive_id, year, week), group in data.groupby(['hive_id', 'year', 'week']):
         
-        first_weight = group['sensor_weight'].iloc[0]
-        last_weight = group['sensor_weight'].iloc[-1]
+        if len(group) < 100:  # Skip if insufficient data points
+            continue
         
-        if first_weight == 0:
-            return 3
+        # ==========================================
+        # AGGREGATE NUMERICAL FEATURES
+        # ==========================================
         
-        weight_change_pct = ((last_weight - first_weight) / first_weight) * 100
+        weekly_row = {
+            'hive_id': hive_id,
+            'year': year,
+            'week': week,
+            'week_start': group['collection_timestamp'].min(),
+            'week_end': group['collection_timestamp'].max(),
+            'data_points': len(group)
+        }
         
-        # Research-based performance levels
+        # Weather aggregations
+        weekly_row['avg_weather_temp'] = group['weather_temperature'].mean()
+        weekly_row['min_weather_temp'] = group['weather_temperature'].min()
+        weekly_row['max_weather_temp'] = group['weather_temperature'].max()
+        weekly_row['avg_weather_humidity'] = group['weather_humidity'].mean()
+        weekly_row['avg_weather_wind'] = group['weather_wind_speed'].mean()
+        weekly_row['avg_weather_light'] = group['weather_light_intensity'].mean()
+        weekly_row['total_weather_rainfall'] = group['weather_rainfall'].sum()
+        
+        # Sensor aggregations
+        weekly_row['avg_sensor_temp'] = group['sensor_temperature'].mean()
+        weekly_row['std_sensor_temp'] = group['sensor_temperature'].std()
+        weekly_row['min_sensor_temp'] = group['sensor_temperature'].min()
+        weekly_row['max_sensor_temp'] = group['sensor_temperature'].max()
+        weekly_row['avg_sensor_humidity'] = group['sensor_humidity'].mean()
+        weekly_row['avg_sensor_sound'] = group['sensor_sound'].mean()
+        weekly_row['max_sensor_sound'] = group['sensor_sound'].max()
+        
+        # Weight metrics (CRITICAL for performance calculation)
+        weekly_row['start_weight'] = group['sensor_weight'].iloc[0]
+        weekly_row['end_weight'] = group['sensor_weight'].iloc[-1]
+        weekly_row['min_weight'] = group['sensor_weight'].min()
+        weekly_row['max_weight'] = group['sensor_weight'].max()
+        weekly_row['avg_weight'] = group['sensor_weight'].mean()
+        
+        # Calculate weight change percentage
+        if weekly_row['start_weight'] > 0:
+            weight_change = weekly_row['end_weight'] - weekly_row['start_weight']
+            weekly_row['weight_change_abs'] = weight_change
+            weekly_row['weight_change_pct'] = (weight_change / weekly_row['start_weight']) * 100
+        else:
+            weekly_row['weight_change_abs'] = 0
+            weekly_row['weight_change_pct'] = 0
+        
+        # ==========================================
+        # AGGREGATE DERIVED FEATURES
+        # ==========================================
+        
+        # Temperature differential (hive vs environment)
+        weekly_row['avg_temp_differential'] = group['temp_differential'].mean()
+        weekly_row['max_temp_differential'] = group['temp_differential'].max()
+        weekly_row['min_temp_differential'] = group['temp_differential'].min()
+        
+        # Humidity differential
+        weekly_row['avg_humidity_differential'] = group['humidity_differential'].mean()
+        
+        # ==========================================
+        # AGGREGATE BINARY EVENTS (COUNT/PERCENTAGE)
+        # ==========================================
+        
+        # Favorable foraging hours (count total minutes where conditions were good)
+        weekly_row['total_favorable_foraging_minutes'] = group['favorable_foraging'].sum()
+        weekly_row['pct_favorable_foraging'] = (group['favorable_foraging'].sum() / len(group)) * 100
+        
+        # Thermal stress events (count stressful periods)
+        weekly_row['total_thermal_stress_minutes'] = group['thermal_stress'].sum()
+        weekly_row['pct_thermal_stress'] = (group['thermal_stress'].sum() / len(group)) * 100
+        
+        # Sound activity (daytime vs nighttime)
+        daytime_group = group[group['is_daytime'] == True]
+        nighttime_group = group[group['is_daytime'] == False]
+        
+        weekly_row['avg_sound_activity_daytime'] = daytime_group['sound_activity'].mean() if len(daytime_group) > 0 else 0
+        weekly_row['avg_sound_activity_nighttime'] = nighttime_group['sound_activity'].mean() if len(nighttime_group) > 0 else 0
+        weekly_row['sound_activity_ratio'] = weekly_row['avg_sound_activity_daytime'] / (weekly_row['avg_sound_activity_nighttime'] + 0.001)
+        
+        # Temperature variance (stability)
+        weekly_row['avg_temp_variance'] = group['temp_variance'].mean()
+        weekly_row['max_temp_variance'] = group['temp_variance'].max()
+        
+        # ==========================================
+        # TIME-BASED PATTERNS
+        # ==========================================
+        
+        # Average hour of peak activity (when is hive most active?)
+        weekly_row['peak_activity_hour'] = group.loc[group['sensor_sound'].idxmax(), 'hour']
+        
+        # Activity distribution by time of day
+        weekly_row['activity_morning'] = group[(group['hour'] >= 6) & (group['hour'] < 12)]['sensor_sound'].mean()
+        weekly_row['activity_afternoon'] = group[(group['hour'] >= 12) & (group['hour'] < 18)]['sensor_sound'].mean()
+        weekly_row['activity_evening'] = group[(group['hour'] >= 18) & (group['hour'] < 22)]['sensor_sound'].mean()
+        
+        # Month (for seasonal patterns)
+        weekly_row['month'] = group['month'].iloc[0]
+        weekly_row['yala_season'] = weekly_row['month'] in [5, 6, 7, 8]
+        weekly_row['maha_season'] = weekly_row['month'] in [10, 11, 12, 1]
+        
+        # Calculate PERFORMANCE LEVEL based on weight change
+        weekly_row['performance_level'] = calculate_performance_level(weekly_row['weight_change_pct'])
+        
+        weekly_data.append(weekly_row)
+    
+    # Convert to DataFrame
+    weekly_df = pd.DataFrame(weekly_data)
+    
+    print(f"\n✅ Weekly aggregation complete!")
+    print(f"   Original: {len(data)} minute-level records")
+    print(f"   Aggregated: {len(weekly_df)} week-level records")
+    print(f"\n   Performance level distribution:")
+    print(weekly_df['performance_level'].value_counts().sort_index())
+    
+    return weekly_df
+
+def calculate_performance_level(weight_change_pct):
+    """
+    Calculate performance level based on weekly weight change
+    """
         if weight_change_pct > 3:
             return 1  # Excellent
         elif 1 <= weight_change_pct <= 3:
@@ -150,53 +226,82 @@ def create_advanced_features(df):
             return 3  # Moderate
         elif -3 <= weight_change_pct < -1:
             return 4  # Poor
-        else:  # < -3
+    else:  # weight_change_pct < -3
             return 5  # Critical
     
-    # Calculate performance by week and hive
-    weekly_performance = data.groupby(['hive_id', 'year', 'week']).apply(
-        calculate_weekly_performance
-    ).reset_index(name='performance_level')
-    
-    # Merge back to main dataset
-    data = data.merge(weekly_performance, on=['hive_id', 'year', 'week'], how='left')
-    data['performance_level'] = data['performance_level'].fillna(3).astype(int)
-    
-    print(f"✅ Feature engineering complete!")
-    print(f"Dataset shape: {data.shape}")
-    print(f"Performance level distribution:")
-    print(data['performance_level'].value_counts().sort_index())
-    
-    return data
-
 def get_feature_columns():
-    """Return the list of feature columns used for training"""
+    """Return the list of weekly feature columns used for training"""
     return [
-        'weather_temperature', 'weather_humidity', 'weather_wind_speed',
-        'weather_light_intensity', 'weather_rainfall',
-        'sensor_temperature', 'sensor_humidity', 'sensor_sound',
-        'temp_differential', 'humidity_differential', 'favorable_foraging',
-        'thermal_stress', 'sound_activity',
-        'hour_sin', 'hour_cos', 'month_sin', 'month_cos',
-        'yala_season', 'maha_season',
-        'temp_variance_1h', 'sound_trend_1h', 'weather_stability_1h'
+        # Weather features
+        'avg_weather_temp', 'min_weather_temp', 'max_weather_temp',
+        'avg_weather_humidity', 'avg_weather_wind',
+        'avg_weather_light', 'total_weather_rainfall',
+        
+        # Sensor features
+        'avg_sensor_temp', 'std_sensor_temp', 'min_sensor_temp', 'max_sensor_temp',
+        'avg_sensor_humidity',
+        'avg_sensor_sound', 'max_sensor_sound',
+        
+        # Weight features
+        'start_weight', 'end_weight', 'avg_weight', 'min_weight', 'max_weight',
+        
+        # Differential features
+        'avg_temp_differential', 'max_temp_differential', 'min_temp_differential',
+        'avg_humidity_differential',
+        
+        # Aggregated binary features
+        'pct_favorable_foraging', 'total_favorable_foraging_minutes',
+        'pct_thermal_stress', 'total_thermal_stress_minutes',
+        
+        # Sound activity patterns
+        'avg_sound_activity_daytime', 'avg_sound_activity_nighttime', 'sound_activity_ratio',
+        
+        # Temperature stability
+        'avg_temp_variance', 'max_temp_variance',
+        
+        # Activity patterns
+        'peak_activity_hour',
+        'activity_morning', 'activity_afternoon', 'activity_evening',
+        
+        # Seasonal
+        'month', 'yala_season', 'maha_season'
     ]
 
 def preprocess_data(file_path):
-    """Main preprocessing pipeline"""
+    """Main preprocessing pipeline with weekly aggregation"""
+    
     # Load data
+    print("\n" + "="*80)
+    print("🐝 HIVE PERFORMANCE PREPROCESSING - WEEKLY AGGREGATION")
+    print("="*80)
+    
     raw_data = load_and_explore_data(file_path)
     
-    # Create features
-    processed_data = create_advanced_features(raw_data)
+    # Prepare base features
+    processed_data = prepare_base_features(raw_data)
+    
+    # ✅ AGGREGATE to weekly level
+    weekly_data = aggregate_to_weekly_data(processed_data)
     
     # Get feature columns
     feature_cols = get_feature_columns()
     
-    return processed_data, feature_cols
+    # Filter to only include features that exist in our aggregated data
+    available_features = [f for f in feature_cols if f in weekly_data.columns]
+    
+    print(f"\n✅ Preprocessing complete!")
+    print(f"   Weekly records: {len(weekly_data)}")
+    print(f"   Features: {len(available_features)}")
+    
+    return weekly_data, available_features
 
 if __name__ == "__main__":
     # Example usage
-    file_path = "data/bee_performance_dataset_synthetic.csv"
+    file_path = "data/hive_data3.csv"
     data, features = preprocess_data(file_path)
-    print(f"Preprocessing completed. Features: {len(features)}")
+    
+    print(f"\n📊 FINAL DATASET INFO:")
+    print(f"   Shape: {data.shape}")
+    print(f"   Features: {len(features)}")
+    print(f"   Target distribution: {data['performance_level'].value_counts().sort_index().to_dict()}")
+
