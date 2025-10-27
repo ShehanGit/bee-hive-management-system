@@ -184,9 +184,12 @@ function HealthIdentification() {
     return '#2196F3';
   };
 
-  // Render bounding boxes on the image
+  // Render bounding boxes on the image (excluding healthy bees)
   const renderBoundingBoxes = () => {
-    if (!previewUrl || !result?.bounding_boxes) return null;
+    // Don't show bounding boxes for healthy bees
+    if (!previewUrl || !result?.bounding_boxes || result.disease_detection?.disease === 'healthy') {
+      return null;
+    }
     
     return result.bounding_boxes.map((box, index) => (
       <div
