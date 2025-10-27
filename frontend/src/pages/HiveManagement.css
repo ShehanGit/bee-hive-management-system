@@ -1,92 +1,458 @@
-.hive-management main {
-    padding: 20px;
-    margin-top: 80px;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
+/* Hive Management Page Styles - Modern Design */
+.hive-management {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  padding-top: 72px;
+}
+
+.hive-management-main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-icon {
+  font-size: 2.5rem;
+  color: #f59e0b;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.add-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.add-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.button-icon {
+  font-size: 1.25rem;
+}
+
+/* Section Title */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+}
+
+.section-icon {
+  font-size: 1.5rem;
+  color: #f59e0b;
+}
+
+/* Hive List Section */
+.hive-list {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Table Styles */
+.hive-list table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+}
+
+.hive-list thead {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(239, 68, 68, 0.1) 100%);
+}
+
+.hive-list th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hive-list td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #64748b;
+}
+
+.hive-list tr:hover {
+  background: rgba(245, 158, 11, 0.05);
+}
+
+/* Action Buttons */
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.edit-button {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.edit-button:hover {
+  background: #3b82f6;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.delete-button {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.delete-button:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  color: #94a3b8;
+  font-size: 1.125rem;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
   }
-  
-  .hive-form, .hive-list {
-    margin-bottom: 30px;
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  to {
+    opacity: 1;
   }
-  
-  .hive-form h2,
-  .hive-list h2 {
-    margin-bottom: 15px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
   }
-  
-  .hive-form form {
-    display: flex;
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.close-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.close-button:hover {
+  background: #ef4444;
+  color: white;
+  transform: rotate(90deg);
+}
+
+.close-button svg {
+  font-size: 1.25rem;
+}
+
+/* Modal Form */
+.modal-form {
+  padding: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.875rem;
+}
+
+.label-icon {
+  font-size: 1rem;
+  color: #f59e0b;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  color: #1e293b;
+  transition: all 0.3s ease;
+  background: #f8fafc;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #f59e0b;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #94a3b8;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-button {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.cancel-button:hover {
+  background: #e2e8f0;
+  transform: translateY(-2px);
+}
+
+.submit-button {
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .hive-management-main {
+    padding: 1.5rem;
+  }
+
+  .page-header {
     flex-direction: column;
-    gap: 15px;
-    max-width: 400px;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
   }
-  
-  .hive-form form div {
-    display: flex;
-    flex-direction: column;
+
+  .page-header h1 {
+    font-size: 1.75rem;
   }
-  
-  .hive-form label {
-    margin-bottom: 5px;
-    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .hive-management {
+    padding-top: 60px;
   }
-  
-  .hive-form input {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+
+  .hive-management-main {
+    padding: 1rem;
   }
-  
-  .form-buttons {
-    display: flex;
-    gap: 10px;
+
+  .page-header {
+    padding: 1rem;
   }
-  
-  .hive-form button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    background-color: #ffcc00;
-    color: #333;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+
+  .header-content {
+    gap: 0.5rem;
   }
-  
-  .hive-form button:hover {
-    background-color: #ffaa00;
+
+  .header-icon {
+    font-size: 2rem;
   }
-  
-  .hive-list table {
+
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .add-button {
     width: 100%;
-    border-collapse: collapse;
+    justify-content: center;
   }
-  
-  .hive-list th, .hive-list td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
+
+  .hive-list {
+    padding: 1rem;
+    overflow-x: auto;
   }
-  
-  .hive-list th {
-    background-color: #f9f9f9;
+
+  .hive-list table {
+    min-width: 600px;
   }
-  
-  .hive-list button {
-    margin-right: 5px;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 4px;
-    background-color: #ffcc00;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+
+  .modal-content {
+    width: 95%;
+    max-height: 85vh;
   }
-  
-  .hive-list button:hover {
-    background-color: #ffaa00;
+
+  .modal-header,
+  .modal-form {
+    padding: 1.5rem;
   }
-  
+}
+
+@media (max-width: 480px) {
+  .hive-management-main {
+    padding: 0.5rem;
+  }
+
+  .page-header {
+    padding: 1rem 0.75rem;
+  }
+
+  .header-icon {
+    font-size: 1.75rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .modal-content {
+    width: 98%;
+  }
+
+  .modal-header,
+  .modal-form {
+    padding: 1rem;
+  }
+
+  .form-group input {
+    padding: 0.625rem 0.875rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+}
