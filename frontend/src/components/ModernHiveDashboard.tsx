@@ -21,10 +21,9 @@ import {
     FiTrendingUp,
     FiBarChart,
     FiCloudRain,
-    FiEye,
-    FiEyeOff,
-    FiMaximize2,
-    FiMinimize2
+    FiAlertCircle,
+    FiCheckCircle,
+    FiInfo
 } from 'react-icons/fi';
 import './ModernHiveDashboard.css';
 
@@ -317,24 +316,10 @@ const ModernHiveDashboard = () => {
     const [performancePrediction, setPerformancePrediction] = useState<PerformancePrediction | null>(null);
     const [performanceLoading, setPerformanceLoading] = useState(false);
     const [historicalPerformance, setHistoricalPerformance] = useState<HistoricalPerformance[]>([]);
-    const [, setHistoricalPerfLoading] = useState(false);
     const [isManualPredicting, setIsManualPredicting] = useState(false);
     const [selectedSensor, setSelectedSensor] = useState<'temperature' | 'humidity' | 'weight' | 'sound'>('temperature');
-    
-    // Advanced Analytics State
-    const [selectedChartType, setSelectedChartType] = useState<'line' | 'bar' | 'scatter'>('line');
-    const [showPerformanceOverlay, setShowPerformanceOverlay] = useState(true);
-    const [selectedMetrics, setSelectedMetrics] = useState({
-        temperature: true,
-        humidity: true,
-        weight: true,
-        sound: true,
-        wind: true,
-        rainfall: true,
-        light: true
-    });
-    const [chartViewMode, setChartViewMode] = useState<'overview' | 'detailed'>('overview');
-    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [showAnalysis, setShowAnalysis] = useState(false);
+    const [analysisData, setAnalysisData] = useState<any>(null);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -375,17 +360,17 @@ const ModernHiveDashboard = () => {
         return () => clearInterval(interval);
     }, [selectedHiveId]);
 
-    // Manual performance prediction trigger
-    const triggerManualPrediction = async () => {
+    // Analyzation function - triggers prediction and generates insights
+    const analyzeHivePerformance = async () => {
         try {
+            setShowAnalysis(true);
             setIsManualPredicting(true);
             setPerformanceLoading(true);
             
-            console.log('Triggering prediction for hive:', selectedHiveId);
+            console.log('Analyzing hive performance for hive:', selectedHiveId);
             
-            // Create an AbortController for timeout
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout (increased from 60s)
+            const timeoutId = setTimeout(() => controller.abort(), 120000);
             
             try {
                 const response = await fetch(`http://127.0.0.1:5000/api/performance/predict`, {
@@ -399,45 +384,243 @@ const ModernHiveDashboard = () => {
                 
                 clearTimeout(timeoutId);
                 
-                console.log('Response status:', response.status);
-                
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error || 'Unknown error'}`);
                 }
                 
                 const data = await response.json();
-                console.log('Response data:', data);
                 
                 if (data.success && data.prediction) {
-                    console.log('Setting performance prediction:', data.prediction);
                     setPerformancePrediction(data.prediction);
+                    
+                    // Generate simple analysis for beekeeper
+                    const analysis = generateAnalysis(data.prediction, hiveData);
+                    setAnalysisData(analysis);
                 } else {
-                    console.error('Prediction failed:', data);
-                    alert('Failed to predict performance: ' + (data.error || 'Unknown error'));
+                    throw new Error(data.error || 'Failed to generate prediction');
                 }
             } catch (fetchError) {
                 if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-                    throw new Error('Request timeout: The prediction is taking too long.');
+                    throw new Error('Analysis is taking too long. Please try again.');
                 }
                 throw fetchError;
             }
         } catch (error) {
-            console.error('Error triggering performance prediction:', error);
-            alert('Error predicting performance: ' + (error instanceof Error ? error.message : String(error)));
+            console.error('Error analyzing performance:', error);
+            alert('Error analyzing performance: ' + (error instanceof Error ? error.message : String(error)));
         } finally {
             setPerformanceLoading(false);
             setIsManualPredicting(false);
         }
     };
 
+    // Generate simple, easy-to-understand analysis
+    const generateAnalysis = (prediction: any, currentData: any) => {
+        const level = prediction.predicted_level;
+        const confidence = prediction.confidence;
+        const riskAssessment = prediction.risk_assessment;
+        
+        // Determine overall status
+        let overallStatus = 'Unknown';
+        let statusColor = '#64748b';
+        let statusIcon = <FiInfo />;
+        
+        if (level <= 2) {
+            overallStatus = 'Healthy';
+            statusColor = '#22c55e';
+            statusIcon = <FiCheckCircle />;
+        } else if (level === 3) {
+            overallStatus = 'Monitor';
+            statusColor = '#facc15';
+            statusIcon = <FiInfo />;
+        } else {
+            overallStatus = 'Attention Needed';
+            statusColor = '#ef4444';
+            statusIcon = <FiAlertCircle />;
+        }
+        
+        // Key insights
+        const insights = [];
+        const features = [];
+        
+        // Temperature insight
+        if (currentData?.sensors?.temperature && currentData?.weather?.temperature) {
+            const tempDiff = currentData.sensors.temperature - currentData.weather.temperature;
+            if (tempDiff > 5) {
+                insights.push({
+                    type: 'temperature',
+                    status: 'good',
+                    message: 'Hive is maintaining temperature well above external temperature',
+                    recommendation: 'Hive is active and generating heat'
+                });
+            } else if (tempDiff < 2) {
+                insights.push({
+                    type: 'temperature',
+                    status: 'warning',
+                    message: 'Hive temperature is close to external temperature',
+                    recommendation: 'Monitor closely - colony may be struggling to maintain heat'
+                });
+            }
+            
+            // Add feature analysis
+            features.push({
+                name: 'Temperature Stability',
+                value: `${Math.abs(tempDiff).toFixed(1)}°C difference`,
+                impact: tempDiff > 5 ? 'High - Good colony activity' : tempDiff > 2 ? 'Medium - Normal' : 'Low - Needs attention',
+                icon: 'temperature',
+                color: '#ef4444'
+            });
+        }
+        
+        // Humidity insight
+        if (currentData?.sensors?.humidity) {
+            const humidity = currentData.sensors.humidity;
+            if (humidity < 40) {
+                insights.push({
+                    type: 'humidity',
+                    status: 'warning',
+                    message: 'Hive humidity is low',
+                    recommendation: 'Consider adding a water source nearby'
+                });
+            } else if (humidity > 70) {
+                insights.push({
+                    type: 'humidity',
+                    status: 'warning',
+                    message: 'Hive humidity is high',
+                    recommendation: 'Check ventilation - ensure proper airflow'
+                });
+            }
+            
+            // Add feature analysis
+            features.push({
+                name: 'Humidity Level',
+                value: `${humidity.toFixed(1)}%`,
+                impact: humidity >= 40 && humidity <= 70 ? 'High - Optimal for bees' : 'Medium - Monitor closely',
+                icon: 'humidity',
+                color: '#3b82f6'
+            });
+        }
+        
+        // Sound/Activity insight
+        if (currentData?.sensors?.sound) {
+            const sound = currentData.sensors.sound;
+            if (sound > 70) {
+                insights.push({
+                    type: 'activity',
+                    status: 'good',
+                    message: 'High bee activity detected',
+                    recommendation: 'Colony is very active'
+                });
+            } else if (sound < 40) {
+                insights.push({
+                    type: 'activity',
+                    status: 'warning',
+                    message: 'Low bee activity',
+                    recommendation: 'Monitor closely - may indicate colony stress'
+                });
+            }
+            
+            // Add feature analysis
+            features.push({
+                name: 'Colony Activity',
+                value: `${sound.toFixed(1)} dB`,
+                impact: sound > 60 ? 'High - Active colony' : sound > 40 ? 'Medium - Normal activity' : 'Low - Reduced activity',
+                icon: 'activity',
+                color: '#10b981'
+            });
+        }
+        
+        // Weight insight
+        if (currentData?.sensors?.weight && historicalData.length > 10) {
+            const sortedData = [...historicalData].sort((a, b) => 
+                new Date(a.collection_timestamp).getTime() - new Date(b.collection_timestamp).getTime()
+            );
+            const lastWeight = sortedData[sortedData.length - 1]?.sensors?.weight;
+            const firstWeight = sortedData[0]?.sensors?.weight;
+            const weightChange = lastWeight && firstWeight ? lastWeight - firstWeight : 0;
+            if (weightChange > 1) {
+                insights.push({
+                    type: 'weight',
+                    status: 'good',
+                    message: 'Hive weight is increasing',
+                    recommendation: 'Good sign - bees are collecting resources'
+                });
+            } else if (weightChange < -1) {
+                insights.push({
+                    type: 'weight',
+                    status: 'warning',
+                    message: 'Hive weight is decreasing',
+                    recommendation: 'Monitor consumption - may need supplementary feeding'
+                });
+            }
+            
+            // Removed Hive Weight Change feature
+        }
+        
+        // Weather conditions impact
+        if (currentData?.weather) {
+            const weather = currentData.weather;
+            let weatherImpact = 'Good';
+            
+            // Check if weather is favorable for foraging
+            const isGoodForForaging = weather.temperature && weather.temperature > 15 && 
+                                      weather.temperature && weather.temperature < 35 && 
+                                      weather.rainfall === 0 && 
+                                      weather.wind_speed && weather.wind_speed < 25 &&
+                                      weather.light_intensity && weather.light_intensity > 1000;
+            
+            if (!isGoodForForaging) {
+                if (weather.temperature && (weather.temperature > 35 || weather.temperature < 10)) {
+                    weatherImpact = 'Poor - Extreme temperature';
+                } else if (weather.rainfall && weather.rainfall > 0) {
+                    weatherImpact = 'Poor - Rain';
+                } else if (weather.wind_speed && weather.wind_speed > 25) {
+                    weatherImpact = 'Fair - High wind';
+                }
+            }
+            
+            features.push({
+                name: 'Weather Conditions',
+                value: `${weather.temperature ? weather.temperature.toFixed(1) : 'N/A'}°C, ${weather.humidity ? weather.humidity.toFixed(0) : 'N/A'}%`,
+                impact: weatherImpact,
+                icon: weather.rainfall && weather.rainfall > 0 ? 'rain' : weather.temperature && weather.temperature > 30 ? 'sun' : 'cloud',
+                color: '#f59e0b'
+            });
+        }
+        
+        // Removed Data Quality feature
+        
+        // Historical data availability
+        if (historicalData.length > 0) {
+            features.push({
+                name: 'Historical Data',
+                value: `${historicalData.length} records`,
+                impact: historicalData.length > 100 ? 'High - Good trend analysis' : historicalData.length > 50 ? 'Medium - Basic trends' : 'Low - Limited history',
+                icon: 'trend',
+                color: '#8b5cf6'
+            });
+        }
+        
+        return {
+            overallStatus,
+            statusColor,
+            statusIcon,
+            confidence: (confidence * 100).toFixed(1),
+            level,
+            interpretation: prediction.interpretation,
+            riskAssessment,
+            insights,
+            features,
+            probabilities: prediction.all_probabilities || {}
+        };
+    };
+
     useEffect(() => {
         const fetchHistoricalData = async () => {
             try {
-                // Ensure selectedTimeRange is valid
                 const validTimeRange = ['24h', '1w', '1m'].includes(selectedTimeRange) ? selectedTimeRange : '24h';
                 const hours = validTimeRange === '24h' ? 24 : validTimeRange === '1w' ? 168 : 720;
-                console.log('Historical data request:', { selectedTimeRange, validTimeRange, hours });
                 const response = await fetch(`http://127.0.0.1:5000/api/synchronized/historical?hive_id=${selectedHiveId}&hours=${hours}`);
                 const data = await response.json();
                 setHistoricalData(data.success && data.data ? data.data : []);
@@ -448,34 +631,6 @@ const ModernHiveDashboard = () => {
         };
         fetchHistoricalData();
     }, [selectedHiveId, selectedTimeRange]);
-
-    useEffect(() => {
-        const fetchHistoricalPerformance = async () => {
-            try {
-                setHistoricalPerfLoading(true);
-                // Only fetch if there's already a prediction
-                if (!performancePrediction) {
-                    setHistoricalPerformance([]);
-                    setHistoricalPerfLoading(false);
-                    return;
-                }
-                
-                // Ensure selectedTimeRange is valid
-                const validTimeRange = ['24h', '1w', '1m'].includes(selectedTimeRange) ? selectedTimeRange : '24h';
-                const hours = validTimeRange === '24h' ? 24 : validTimeRange === '1w' ? 168 : 720;
-                console.log('Performance history request:', { selectedTimeRange, validTimeRange, hours });
-                const response = await fetch(`http://127.0.0.1:5000/api/performance/history?hive_id=${selectedHiveId}&hours=${hours}`);
-                const data = await response.json();
-                setHistoricalPerformance(data.success && data.history ? data.history : []);
-            } catch (error) {
-                console.error('Error fetching performance history:', error);
-                setHistoricalPerformance([]);
-            } finally {
-                setHistoricalPerfLoading(false);
-            }
-        };
-        fetchHistoricalPerformance();
-    }, [selectedHiveId, selectedTimeRange, performancePrediction]);
 
     const getPerformanceStatus = () => {
         if (performanceLoading) return { predicted_level: '-', interpretation: 'Loading...', confidence: '-', risk_assessment: '', all_probabilities: {}, color: 'gray', timestamp: '' };
@@ -563,332 +718,6 @@ const ModernHiveDashboard = () => {
         };
     }, [historicalData]);
 
-    // Advanced Analytics Data Processing - memoized
-    const advancedAnalytics = useMemo(() => {
-        if (!historicalData || historicalData.length === 0) return { labels: [], datasets: [] };
-        
-        const sortedData = [...historicalData].sort((a, b) => new Date(a.collection_timestamp).getTime() - new Date(b.collection_timestamp).getTime());
-        const labels = sortedData.map(item => new Date(item.collection_timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
-        
-        const datasets = [];
-        
-        // Temperature metrics
-        if (selectedMetrics.temperature) {
-            datasets.push({
-                label: 'Internal Temp',
-                data: sortedData.map(item => item.sensors?.temperature || null),
-                borderColor: '#ff6b35',
-                backgroundColor: 'rgba(255, 107, 53, 0.1)',
-                fill: false,
-                tension: 0.4,
-                yAxisID: 'y'
-            });
-            datasets.push({
-                label: 'External Temp',
-                data: sortedData.map(item => item.weather?.temperature || null),
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                fill: false,
-                tension: 0.4,
-                yAxisID: 'y'
-            });
-        }
-        
-        // Humidity metrics
-        if (selectedMetrics.humidity) {
-            datasets.push({
-                label: 'Internal Humidity',
-                data: sortedData.map(item => item.sensors?.humidity || null),
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                fill: false,
-                tension: 0.4,
-                yAxisID: 'y'
-            });
-            datasets.push({
-                label: 'External Humidity',
-                data: sortedData.map(item => item.weather?.humidity || null),
-                borderColor: '#06b6d4',
-                backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                fill: false,
-                tension: 0.4,
-                yAxisID: 'y'
-            });
-        }
-        
-        // Weight metric
-        if (selectedMetrics.weight) {
-            datasets.push({
-                label: 'Hive Weight',
-                data: sortedData.map(item => item.sensors?.weight || null),
-                borderColor: '#8b5cf6',
-                backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                fill: false,
-                tension: 0.4,
-                yAxisID: 'y1'
-            });
-        }
-        
-        // Sound metric
-        if (selectedMetrics.sound) {
-            datasets.push({
-                label: 'Sound Level',
-                data: sortedData.map(item => item.sensors?.sound || null),
-                borderColor: '#f59e0b',
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                fill: false,
-                tension: 0.4,
-                yAxisID: 'y'
-            });
-        }
-        
-        // Wind metric
-        if (selectedMetrics.wind) {
-            datasets.push({
-                label: 'Wind Speed',
-                data: sortedData.map(item => item.weather?.wind_speed || null),
-                borderColor: '#84cc16',
-                backgroundColor: 'rgba(132, 204, 22, 0.1)',
-                fill: false,
-                tension: 0.4,
-                yAxisID: 'y'
-            });
-        }
-        
-        // Rainfall metric
-        if (selectedMetrics.rainfall) {
-            datasets.push({
-                label: 'Rainfall',
-                data: sortedData.map(item => item.weather?.rainfall || null),
-                borderColor: '#0ea5e9',
-                backgroundColor: 'rgba(14, 165, 233, 0.1)',
-                fill: false,
-                tension: 0.4,
-                yAxisID: 'y1'
-            });
-        }
-        
-        // Light metric
-        if (selectedMetrics.light) {
-            datasets.push({
-                label: 'Light Intensity',
-                data: sortedData.map(item => item.weather?.light_intensity || null),
-                borderColor: '#f97316',
-                backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                fill: false,
-                tension: 0.4,
-                yAxisID: 'y1'
-            });
-        }
-        
-        // Performance overlay
-        if (showPerformanceOverlay && historicalPerformance.length > 0) {
-            const perfData = historicalPerformance.map(perf => {
-                const level = perf.predicted_level;
-                return level === 1 ? 100 : level === 2 ? 80 : level === 3 ? 60 : level === 4 ? 40 : 20;
-            });
-            
-            datasets.push({
-                label: 'Performance Level',
-                data: perfData,
-                borderColor: '#ef4444',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                fill: false,
-                tension: 0.4,
-                yAxisID: 'y2',
-                borderWidth: 3,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            });
-        }
-        
-        return { labels, datasets };
-    }, [historicalData, selectedMetrics, performancePrediction]);
-    
-    const advancedChartData = advancedAnalytics;
-
-    // Advanced Analytics Chart Configuration
-    const advancedChartConfig = {
-        type: selectedChartType,
-        data: advancedChartData,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index' as const,
-                intersect: false,
-            },
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Advanced Analytics Dashboard',
-                    font: {
-                        size: 18,
-                        weight: 'bold' as const
-                    },
-                    color: '#1e293b'
-                },
-                legend: {
-                    display: true,
-                    position: 'top' as const,
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20,
-                        font: {
-                            size: 12,
-                            weight: 'bold' as const
-                        }
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    titleColor: '#1e293b',
-                    bodyColor: '#64748b',
-                    borderColor: '#e2e8f0',
-                    borderWidth: 1,
-                    cornerRadius: 8,
-                    displayColors: true,
-                    callbacks: {
-                        title: (context: any) => {
-                            return `Time: ${context[0].label}`;
-                        },
-                        label: (context: any) => {
-                            const label = context.dataset.label || '';
-                            const value = context.parsed.y;
-                            let unit = '';
-                            
-                            if (label.includes('Temp')) unit = '°C';
-                            else if (label.includes('Humidity')) unit = '%';
-                            else if (label.includes('Weight')) unit = 'kg';
-                            else if (label.includes('Sound')) unit = 'dB';
-                            else if (label.includes('Wind')) unit = 'km/h';
-                            else if (label.includes('Rainfall')) unit = 'mm';
-                            else if (label.includes('Light')) unit = 'lux';
-                            else if (label.includes('Performance')) unit = '%';
-                            
-                            return `${label}: ${value?.toFixed(1) || 'N/A'}${unit}`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    display: true,
-                    title: {
-                        display: true,
-                        text: 'Time',
-                        font: {
-                            size: 14,
-                            weight: 'bold' as const
-                        },
-                        color: '#64748b'
-                    },
-                    grid: {
-                        color: 'rgba(226, 232, 240, 0.5)',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        color: '#64748b',
-                        font: {
-                            size: 11
-                        }
-                    }
-                },
-                y: {
-                    type: 'linear' as const,
-                    display: true,
-                    position: 'left' as const,
-                    title: {
-                        display: true,
-                        text: 'Temperature, Humidity, Sound, Wind (°C, %, dB, km/h)',
-                        font: {
-                            size: 12,
-                            weight: 'bold' as const
-                        },
-                        color: '#64748b'
-                    },
-                    grid: {
-                        color: 'rgba(226, 232, 240, 0.5)',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        color: '#64748b',
-                        font: {
-                            size: 11
-                        }
-                    }
-                },
-                y1: {
-                    type: 'linear' as const,
-                    display: true,
-                    position: 'right' as const,
-                    title: {
-                        display: true,
-                        text: 'Weight, Rainfall, Light (kg, mm, lux)',
-                        font: {
-                            size: 12,
-                            weight: 'bold' as const
-                        },
-                        color: '#64748b'
-                    },
-                    grid: {
-                        drawOnChartArea: false,
-                    },
-                    ticks: {
-                        color: '#64748b',
-                        font: {
-                            size: 11
-                        }
-                    }
-                },
-                y2: {
-                    type: 'linear' as const,
-                    display: showPerformanceOverlay,
-                    position: 'right' as const,
-                    min: 0,
-                    max: 100,
-                    title: {
-                        display: true,
-                        text: 'Performance Level (%)',
-                        font: {
-                            size: 12,
-                            weight: 'bold' as const
-                        },
-                        color: '#ef4444'
-                    },
-                    grid: {
-                        drawOnChartArea: false,
-                    },
-                    ticks: {
-                        color: '#ef4444',
-                        font: {
-                            size: 11
-                        },
-                        callback: function(value: any) {
-                            const level = Math.round((100 - value) / 20) + 1;
-                            return `Level ${level}`;
-                        }
-                    }
-                }
-            },
-            elements: {
-                point: {
-                    radius: 3,
-                    hoverRadius: 6,
-                    borderWidth: 2
-                },
-                line: {
-                    borderWidth: 2
-                }
-            },
-            animation: {
-                duration: 1000,
-                easing: 'easeInOutQuart' as const
-            }
-        }
-    };
-
-    // Get selected sensor configuration
     const getSelectedSensorConfig = () => {
         const configs = {
             temperature: {
@@ -975,62 +804,6 @@ const ModernHiveDashboard = () => {
         interaction: { mode: 'nearest' as const, axis: 'x' as const, intersect: false }
     };
 
-    const getPerformanceChartData = () => {
-        if (!historicalPerformance || historicalPerformance.length === 0) return { labels: [], datasets: [] };
-        const sorted = [...historicalPerformance].sort((a, b) => new Date(a.collection_timestamp).getTime() - new Date(b.collection_timestamp).getTime());
-        return {
-            labels: sorted.map(item => new Date(item.collection_timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })),
-            datasets: [{ 
-                label: 'Performance Level', 
-                data: sorted.map(item => item.predicted_level), 
-                borderColor: '#ff6b35', 
-                backgroundColor: 'rgba(255, 107, 53, 0.1)', 
-                fill: true, 
-                tension: 0.4, 
-                pointRadius: 2 
-            }]
-        };
-    };
-    const performanceChartData = getPerformanceChartData();
-
-    const performanceChartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { 
-            legend: { display: false }, 
-            tooltip: { 
-                mode: 'index' as const, 
-                intersect: false, 
-                backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                titleColor: '#1e293b', 
-                bodyColor: '#1e293b', 
-                borderColor: '#ff6b35', 
-                borderWidth: 2,
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
-            } 
-        },
-        scales: { 
-            x: { 
-                display: true, 
-                grid: { color: 'rgba(100, 116, 139, 0.2)' },
-                ticks: { color: '#64748b' }
-            }, 
-            y: { 
-                display: true, 
-                grid: { color: 'rgba(100, 116, 139, 0.2)' },
-                ticks: { 
-                    color: '#64748b',
-                    stepSize: 1, 
-                    callback: function(tickValue: string | number) { 
-                        const value = typeof tickValue === 'number' ? tickValue : parseInt(tickValue as string, 10); 
-                        return value === 1 ? 'Excellent' : value === 2 ? 'Good' : value === 3 ? 'Moderate' : value === 4 ? 'Poor' : value === 5 ? 'Critical' : value; 
-                    } 
-                } 
-            } 
-        },
-        interaction: { mode: 'nearest' as const, axis: 'x' as const, intersect: false }
-    };
-
     if (loading) {
         return (
             <div className="modern-dashboard">
@@ -1044,16 +817,13 @@ const ModernHiveDashboard = () => {
 
     return (
         <div className="modern-dashboard">
-            {/* Memoized Header - only re-renders when selectedHiveId or currentTime changes */}
             <DashboardHeader 
                 selectedHiveId={selectedHiveId} 
                 setSelectedHiveId={setSelectedHiveId} 
                 currentTime={currentTime} 
             />
 
-            {/* Main Dashboard Grid */}
             <div className="dashboard-grid">
-                {/* Top Row - Main Metrics */}
                 <div className="main-metrics-row">
                     <div className="main-gauge-container">
                         <ModernGauge 
@@ -1082,7 +852,6 @@ const ModernHiveDashboard = () => {
                     </div>
                 </div>
 
-                {/* Middle Row - Sensor Cards */}
                 <div className="sensor-cards-row">
                     <MetricCard 
                         title="Temperature" 
@@ -1122,14 +891,13 @@ const ModernHiveDashboard = () => {
                     />
                 </div>
 
-                {/* Bottom Row - Performance & Weather */}
                 <div className="bottom-row">
                     <div className="performance-section">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                             <PerformanceCard performance={performance} />
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                 <button 
-                                    onClick={triggerManualPrediction} 
+                                    onClick={analyzeHivePerformance} 
                                     disabled={isManualPredicting || performanceLoading}
                                     style={{
                                         padding: '12px 24px',
@@ -1147,21 +915,173 @@ const ModernHiveDashboard = () => {
                                     onMouseEnter={(e) => !isManualPredicting && !performanceLoading && (e.currentTarget.style.backgroundColor = '#e55a26')}
                                     onMouseLeave={(e) => !isManualPredicting && !performanceLoading && (e.currentTarget.style.backgroundColor = '#ff6b35')}
                                 >
-                                    {isManualPredicting || performanceLoading ? 'Predicting...' : 'Predict Performance'}
+                                    {isManualPredicting || performanceLoading ? 'Analyzing...' : 'Analyze Hive Performance'}
                                 </button>
                                 {!performancePrediction && !isManualPredicting && !performanceLoading && (
                                     <div style={{ fontSize: '12px', color: '#64748b', fontStyle: 'italic' }}>
-                                        Click to get performance prediction
+                                        Click to get detailed analysis
                                     </div>
                                 )}
                             </div>
                         </div>
-                        <div className="performance-chart">
-                            <h4><FiBarChart className="chart-icon" /> Performance History</h4>
-                            <div className="chart-wrapper">
-                                <Line data={performanceChartData} options={performanceChartOptions} />
+
+                        {showAnalysis && analysisData && (
+                            <div className="analysis-section">
+                                <div className="analysis-header">
+                                    <h3><FiBarChart className="analysis-icon" /> Hive Performance Analysis</h3>
+                                </div>
+                                
+                                <div className="analysis-summary">
+                                    <div className="summary-card" style={{ borderLeft: `4px solid ${analysisData.statusColor}` }}>
+                                        <div className="summary-status">
+                                            {analysisData.statusIcon}
+                                            <span style={{ color: analysisData.statusColor, fontWeight: 'bold' }}>
+                                                {analysisData.overallStatus}
+                                            </span>
+                                        </div>
+                                        <div className="summary-level">Level {analysisData.level} Performance</div>
+                                        <div className="summary-confidence">{analysisData.confidence}% Confidence</div>
+                                    </div>
+                                    
+                                    <div className="summary-description">
+                                        <p><strong>Status:</strong> {analysisData.interpretation}</p>
+                                        <p><strong>Risk Assessment:</strong> {analysisData.riskAssessment}</p>
+                                    </div>
+                                </div>
+
+                                <div className="analysis-insights">
+                                    <h4>Key Insights</h4>
+                                    {analysisData.insights.length > 0 ? (
+                                        <div className="insights-list">
+                                            {analysisData.insights.map((insight: any, index: number) => (
+                                                <div key={index} className={`insight-item ${insight.status}`}>
+                                                    <div className="insight-header">
+                                                        <span className="insight-type">{insight.type}</span>
+                                                        <span className="insight-badge" style={{ 
+                                                            backgroundColor: insight.status === 'good' ? '#22c55e' : '#f59e42',
+                                                            color: 'white',
+                                                            padding: '2px 8px',
+                                                            borderRadius: '4px',
+                                                            fontSize: '11px',
+                                                            fontWeight: 'bold'
+                                                        }}>
+                                                            {insight.status === 'good' ? 'Good' : 'Monitor'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="insight-message">{insight.message}</div>
+                                                    <div className="insight-recommendation">
+                                                        <FiInfo /> {insight.recommendation}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="no-insights">No specific insights available at this time.</div>
+                                    )}
+                                </div>
+
+                                <div className="analysis-features">
+                                    <h4>Key Features Used for Prediction</h4>
+                                    <div className="features-grid">
+                                        {analysisData.features && analysisData.features.map((feature: any, index: number) => {
+                                            // Map icon names to React Icons components
+                                            const IconComponent = 
+                                                feature.icon === 'temperature' ? FiThermometer :
+                                                feature.icon === 'humidity' ? FiDroplet :
+                                                feature.icon === 'activity' ? FiActivity :
+                                                feature.icon === 'rain' ? FiCloudRain :
+                                                feature.icon === 'sun' ? FiSun :
+                                                feature.icon === 'cloud' ? FiWind :
+                                                FiTrendingUp;
+                                            
+                                            return (
+                                                <div key={index} className="feature-card" style={{ borderTop: `3px solid ${feature.color}` }}>
+                                                    <div className="feature-header">
+                                                        <div className="feature-icon-wrapper" style={{ backgroundColor: `${feature.color}15`, color: feature.color }}>
+                                                            <IconComponent />
+                                                        </div>
+                                                        <span className="feature-name">{feature.name}</span>
+                                                    </div>
+                                                    <div className="feature-value" style={{ color: feature.color }}>{feature.value}</div>
+                                                    <div className="feature-impact">{feature.impact}</div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div className="analysis-probabilities">
+                                    <h4>Performance Level Probabilities</h4>
+                                    <div className="probabilities-grid">
+                                        <div className="prob-item">
+                                            <div className="prob-label">Excellent</div>
+                                            <div className="prob-bar">
+                                                <div 
+                                                    className="prob-fill" 
+                                                    style={{ 
+                                                        width: `${(analysisData.probabilities['Level_1'] || 0) * 100}%`,
+                                                        backgroundColor: '#22c55e'
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="prob-value">{(analysisData.probabilities['Level_1'] || 0) * 100}%</div>
+                                        </div>
+                                        <div className="prob-item">
+                                            <div className="prob-label">Good</div>
+                                            <div className="prob-bar">
+                                                <div 
+                                                    className="prob-fill" 
+                                                    style={{ 
+                                                        width: `${(analysisData.probabilities['Level_2'] || 0) * 100}%`,
+                                                        backgroundColor: '#3b82f6'
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="prob-value">{(analysisData.probabilities['Level_2'] || 0) * 100}%</div>
+                                        </div>
+                                        <div className="prob-item">
+                                            <div className="prob-label">Moderate</div>
+                                            <div className="prob-bar">
+                                                <div 
+                                                    className="prob-fill" 
+                                                    style={{ 
+                                                        width: `${(analysisData.probabilities['Level_3'] || 0) * 100}%`,
+                                                        backgroundColor: '#facc15'
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="prob-value">{(analysisData.probabilities['Level_3'] || 0) * 100}%</div>
+                                        </div>
+                                        <div className="prob-item">
+                                            <div className="prob-label">Poor</div>
+                                            <div className="prob-bar">
+                                                <div 
+                                                    className="prob-fill" 
+                                                    style={{ 
+                                                        width: `${(analysisData.probabilities['Level_4'] || 0) * 100}%`,
+                                                        backgroundColor: '#f59e42'
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="prob-value">{(analysisData.probabilities['Level_4'] || 0) * 100}%</div>
+                                        </div>
+                                        <div className="prob-item">
+                                            <div className="prob-label">Critical</div>
+                                            <div className="prob-bar">
+                                                <div 
+                                                    className="prob-fill" 
+                                                    style={{ 
+                                                        width: `${(analysisData.probabilities['Level_5'] || 0) * 100}%`,
+                                                        backgroundColor: '#ef4444'
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="prob-value">{(analysisData.probabilities['Level_5'] || 0) * 100}%</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                     <div className="weather-section">
                         <div className="weather-card">
@@ -1205,124 +1125,6 @@ const ModernHiveDashboard = () => {
                                         <div className="weather-item-value">{hiveData?.weather?.rainfall?.toFixed(1) || 'N/A'} mm</div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Advanced Analytics Section - Bottom */}
-                <div className="advanced-analytics-section">
-                    <div className="analytics-header">
-                        <div className="analytics-title">
-                            <FiBarChart className="analytics-icon" />
-                            <h2>Advanced Analytics</h2>
-                            <span className="analytics-subtitle">Multi-dimensional data correlation analysis</span>
-                        </div>
-                        <div className="analytics-controls">
-                            <div className="control-group">
-                                <label>Chart Type:</label>
-                                <select value={selectedChartType} onChange={(e) => setSelectedChartType(e.target.value as 'line' | 'bar' | 'scatter')}>
-                                    <option value="line">Line Chart</option>
-                                    <option value="bar">Bar Chart</option>
-                                    <option value="scatter">Scatter Plot</option>
-                                </select>
-                            </div>
-                            <div className="control-group">
-                                <label>View Mode:</label>
-                                <select value={chartViewMode} onChange={(e) => setChartViewMode(e.target.value as 'overview' | 'detailed')}>
-                                    <option value="overview">Overview</option>
-                                    <option value="detailed">Detailed</option>
-                                </select>
-                            </div>
-                            <button 
-                                className={`toggle-btn ${showPerformanceOverlay ? 'active' : ''}`}
-                                onClick={() => setShowPerformanceOverlay(!showPerformanceOverlay)}
-                            >
-                                {showPerformanceOverlay ? <FiEye /> : <FiEyeOff />}
-                                Performance Overlay
-                            </button>
-                            <button 
-                                className="fullscreen-btn"
-                                onClick={() => setIsFullscreen(!isFullscreen)}
-                            >
-                                {isFullscreen ? <FiMinimize2 /> : <FiMaximize2 />}
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div className="metrics-selector">
-                        <div className="selector-label">Select Metrics:</div>
-                        <div className="metrics-grid">
-                            {Object.entries(selectedMetrics).map(([key, value]) => (
-                                <label key={key} className="metric-checkbox">
-                                    <input
-                                        type="checkbox"
-                                        checked={value}
-                                        onChange={(e) => setSelectedMetrics(prev => ({ ...prev, [key]: e.target.checked }))}
-                                    />
-                                    <span className="checkbox-label">
-                                        {key === 'temperature' && <FiThermometer />}
-                                        {key === 'humidity' && <FiDroplet />}
-                                        {key === 'weight' && <FiActivity />}
-                                        {key === 'sound' && <FiVolume2 />}
-                                        {key === 'wind' && <FiWind />}
-                                        {key === 'rainfall' && <FiCloudRain />}
-                                        {key === 'light' && <FiSun />}
-                                        {key.charAt(0).toUpperCase() + key.slice(1)}
-                                    </span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                    
-                    <div className={`analytics-chart-container ${isFullscreen ? 'fullscreen' : ''}`}>
-                        <div className="chart-wrapper">
-                            <Line {...advancedChartConfig} />
-                        </div>
-                    </div>
-                    
-                    <div className="analytics-insights">
-                        <div className="insights-header">
-                            <FiTrendingUp className="insights-icon" />
-                            <h3>Key Insights</h3>
-                        </div>
-                        <div className="insights-grid">
-                            <div className="insight-card">
-                                <div className="insight-title">Temperature Correlation</div>
-                                <div className="insight-value">
-                                    {hiveData?.sensors?.temperature && hiveData?.weather?.temperature 
-                                        ? `${(hiveData.sensors.temperature - hiveData.weather.temperature).toFixed(1)}°C diff`
-                                        : 'N/A'
-                                    }
-                                </div>
-                                <div className="insight-description">Internal vs External temperature difference</div>
-                            </div>
-                            <div className="insight-card">
-                                <div className="insight-title">Humidity Stability</div>
-                                <div className="insight-value">
-                                    {hiveData?.sensors?.humidity 
-                                        ? `${hiveData.sensors.humidity.toFixed(1)}%`
-                                        : 'N/A'
-                                    }
-                                </div>
-                                <div className="insight-description">Current internal humidity level</div>
-                            </div>
-                            <div className="insight-card">
-                                <div className="insight-title">Activity Level</div>
-                                <div className="insight-value">
-                                    {hiveData?.sensors?.sound 
-                                        ? `${hiveData.sensors.sound.toFixed(1)} dB`
-                                        : 'N/A'
-                                    }
-                                </div>
-                                <div className="insight-description">Bee activity sound intensity</div>
-                            </div>
-                            <div className="insight-card">
-                                <div className="insight-title">Performance Trend</div>
-                                <div className="insight-value" style={{ color: performance.color }}>
-                                    Level {performance.predicted_level}
-                                </div>
-                                <div className="insight-description">{performance.interpretation}</div>
                             </div>
                         </div>
                     </div>
