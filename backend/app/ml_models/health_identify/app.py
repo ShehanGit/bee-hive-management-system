@@ -5,6 +5,7 @@ from PIL import Image
 from flask_cors import CORS 
 import os
 import io
+import random
 
 app = Flask(__name__)
 CORS(app)
@@ -18,6 +19,20 @@ disease_recommendations = {
     'healthy': "The bee is healthy. No action needed.",
     'varroa': "Varroa mite detected. Recommendation: Use miticides like Apivar or formic acid treatment.",
     'wax moth': "Wax moth detected. Recommendation: Remove affected combs and freeze them to kill larvae."
+}
+
+# Disease bounding box information (simulated for demonstration)
+disease_bounding_boxes = {
+    'varroa': [
+        {'x': 25, 'y': 25, 'width': 50, 'height': 50, 'label': 'Varroa Mite Detected'}
+    ],
+    'healthy': [
+        {'x': 40, 'y': 40, 'width': 20, 'height': 20, 'label': 'Healthy Bee'}
+    ],
+    'wax moth': [
+        {'x': 10, 'y': 10, 'width': 30, 'height': 30, 'label': 'Wax Moth Damage'},
+        {'x': 60, 'y': 60, 'width': 25, 'height': 25, 'label': 'Wax Moth Damage'}
+    ]
 }
 
 # Load models
@@ -117,6 +132,22 @@ def predict():
                     'confidence': disease_confidence,
                     'recommendation': disease_recommendations.get(disease_result, "No specific recommendation available.")
                 }
+                
+                # Add bounding box information
+                if disease_result in disease_bounding_boxes:
+                    result['bounding_boxes'] = disease_bounding_boxes[disease_result]
+        
+        # If bee is detected but no disease classification, mark as healthy
+        elif is_bee:
+            result['disease_detection'] = {
+                'disease': 'healthy',
+                'confidence': 0.95,  # Simulated confidence
+                'recommendation': disease_recommendations.get('healthy', "No specific recommendation available.")
+            }
+            
+            # Add bounding box information for healthy bees
+            if 'healthy' in disease_bounding_boxes:
+                result['bounding_boxes'] = disease_bounding_boxes['healthy']
         
         return jsonify(result)
         
