@@ -18,7 +18,7 @@ import LandingContact from './pages/landing/Contact';
 function App() {
   return (
     <Routes>
-     
+
       <Route path="/hive-management" element={<HiveManagement />} />
       <Route path="/NewHivePlacement" element={<NewHivePlacement />} />
       <Route path="/threat-detection" element={<ThreatDetection />} />
