@@ -13,18 +13,9 @@ interface DiseaseDetection {
   recommendation: string;
 }
 
-interface BoundingBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  label: string;
-}
-
 interface PredictionResult {
   bee_detection: BeeDetection;
   disease_detection: DiseaseDetection | null;
-  bounding_boxes?: BoundingBox[];
 }
 
 function HealthIdentification() {
@@ -36,7 +27,6 @@ function HealthIdentification() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
 
   const handleFileSelect = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -177,56 +167,9 @@ function HealthIdentification() {
     }
   };
 
-  const getBoundingBoxColor = (label: string) => {
-    if (label.includes('Varroa') || label.includes('Mite')) return '#ff9800';
-    if (label.includes('Healthy') || label.includes('healthy')) return '#4CAF50';
-    if (label.includes('Wax') || label.includes('Moth') || label.includes('Damage')) return '#f44336';
-    return '#2196F3';
-  };
-
-  // Render bounding boxes on the image
-  const renderBoundingBoxes = () => {
-    if (!previewUrl || !result?.bounding_boxes) return null;
-    
-    return result.bounding_boxes.map((box, index) => (
-      <div
-        key={index}
-        className="bounding-box"
-        style={{
-          position: 'absolute',
-          left: `${box.x}%`,
-          top: `${box.y}%`,
-          width: `${box.width}%`,
-          height: `${box.height}%`,
-          border: `3px solid ${getBoundingBoxColor(box.label)}`,
-          borderRadius: box.label.includes('Healthy') ? '50%' : '0',
-          boxSizing: 'border-box',
-          pointerEvents: 'none',
-        }}
-      >
-        <div
-          className="bounding-box-label"
-          style={{
-            position: 'absolute',
-            top: '-20px',
-            left: '0',
-            background: getBoundingBoxColor(box.label),
-            color: 'white',
-            padding: '2px 6px',
-            borderRadius: '3px',
-            fontSize: '12px',
-            fontWeight: 'bold',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {box.label}
-        </div>
-      </div>
-    ));
-  };
-
   return (
     <div className="health-identification">
+      {/* <Navbar /> */}
       <Navbar />
       
       <div className="health-content">
@@ -258,14 +201,8 @@ function HealthIdentification() {
             >
               {previewUrl ? (
                 <div className="image-preview">
-                  <div className="image-container" style={{ position: 'relative', display: 'inline-block' }}>
-                    <img 
-                      ref={imageRef}
-                      src={previewUrl} 
-                      alt="Selected bee" 
-                      style={{ maxWidth: '100%', maxHeight: '400px' }}
-                    />
-                    {renderBoundingBoxes()}
+                  <div className="image-container">
+                    <img src={previewUrl} alt="Selected bee" />
                     <div className="image-overlay">
                       <button className="overlay-btn reset" onClick={handleReset}>
                         ✖ Remove
