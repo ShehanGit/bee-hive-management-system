@@ -20,7 +20,7 @@ function App() {
   return (
     <Routes>
       {/* Application Routes */}
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<LandingHomepage />} />
       <Route path="/about" element={<About />} />
       <Route path="/hive-management" element={<HiveManagement />} />
       <Route path="/NewHivePlacement" element={<NewHivePlacement />} />

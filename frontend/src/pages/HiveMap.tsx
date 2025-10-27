@@ -273,10 +273,10 @@ function HiveMap() {
             <button onClick={loadOptimalLocations} className="toggle-view-btn" disabled={loading}>
               {loading ? "Processing..." : "Load Optimal Locations"}
             </button>
-
+            {/*
             <button onClick={clearAllPredictions} className="toggle-view-btn delete-btn" disabled={loading}>
               {loading ? "Clearing..." : "Clear Predictions"}
-            </button>
+            </button> */}
 
            
 
@@ -308,9 +308,9 @@ function HiveMap() {
                   <p><strong>Humidity:</strong> {cellToLocation[selectedCell].humidity} %</p>
                   <p><strong>Sunlight Exposure:</strong> {cellToLocation[selectedCell].sunlight_exposure} hours/day</p>
                   <p><strong>Wind Speed:</strong> {cellToLocation[selectedCell].wind_speed} km/h</p>
-                  <p><strong>Dist. to Water Source:</strong> {cellToLocation[selectedCell].dist_to_water_source.toFixed(3)} km</p>
+                 {/*  <p><strong>Dist. to Water Source:</strong> {cellToLocation[selectedCell].dist_to_water_source.toFixed(3)} km</p>
                   <p><strong>Dist. to Flowering Area:</strong> {cellToLocation[selectedCell].dist_to_flowering_area.toFixed(3)} km</p>
-                  <p><strong>Dist. to Feeding Station:</strong> {cellToLocation[selectedCell].dist_to_feeding_station.toFixed(3)} km</p>
+                  <p><strong>Dist. to Feeding Station:</strong> {cellToLocation[selectedCell].dist_to_feeding_station.toFixed(3)} km</p> */}
                   <p>
                     <strong>Predicted Honey Production:</strong>{" "}
                     <span style={{ color: "var(--primary-color)", fontWeight: "bold" }}>
