@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './LandingNavbar.css';
 
-const LandingNavbar: React.FC = () => {
+const LandingNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -13,10 +13,13 @@ const LandingNavbar: React.FC = () => {
   return (
     <nav className="landing-navbar">
       <div className="landing-nav-container">
-        <div className="landing-nav-logo">
-          <span className="logo-icon">🍯</span>
-          <span className="logo-text">BeeHive Pro</span>
-        </div>
+        <Link to="/" className="landing-nav-logo">
+          <img 
+            src="/BeeSyc-removebg-preview.png" 
+            alt="BeeSyc Logo" 
+            className="landing-logo-image"
+          />
+        </Link>
 
         <button 
           className={`mobile-menu-toggle ${isMenuOpen ? 'active' : ''}`}
